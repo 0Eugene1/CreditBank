@@ -20,4 +20,20 @@ public class LoanOfferDto {
     private BigDecimal rate;
     private Boolean isInsuranceEnabled;
     private Boolean isSalaryClient;
+
+    @Override
+    public String toString() {
+        return "LoanOfferDto{" +
+                "statementId=" + statementId +
+                ", requestedAmount=" + requestedAmount +
+                ", totalAmount=" + totalAmount +
+                ", term=" + term +
+                ", monthlyPayment=" + monthlyPayment +
+                ", rate=" + rate +
+                ", isInsuranceEnabled=" + isInsuranceEnabled +
+                ", isSalaryClient=" + isSalaryClient +
+                '}';
+    }
+
+
 }
