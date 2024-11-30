@@ -1,18 +1,14 @@
-package com.example.calculator.factoryTest;
+package com.example.calculator.factory;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
-import com.example.calculator.factory.LoanOfferFactory;
 import com.example.calculator.service.PrescoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -50,7 +46,7 @@ public class LoanOfferFactoryTest {
         request.setPassportSeries("1234");
         request.setPassportNumber("567890");
         request.setEmail("qweqweqwe@gmail.com");
-        request.setBirthDate(LocalDate.of(1990,1,1));
+        request.setBirthDate(LocalDate.of(1990, 1, 1));
         request.setMiddleName("Olegov");
         request.setFirstName("Oleg");
         request.setLastName("Olegovich");
@@ -137,36 +133,5 @@ public class LoanOfferFactoryTest {
     }
 
 
-    //FIXME DOES NOT WORK
-
-//    // Тестирование с корректным значением baseRate
-//    @Test
-//    void testCreateOffer_ValidBaseRate() {
-//        LoanStatementRequestDto request = new LoanStatementRequestDto();
-//        request.setAmount(new BigDecimal("100000"));
-//        request.setTerm(12);
-//        request.setPassportSeries("1234");
-//        request.setPassportNumber("567890");
-//        request.setEmail("qweqweqwe@gmail.com");
-//        request.setBirthDate(LocalDate.of(1990,1,1));
-//        request.setMiddleName("Olegov");
-//        request.setFirstName("Oleg");
-//        request.setLastName("Olegovich");
-//
-//
-//        // Мокируем, что prescoring прошёл
-//        when(prescoringService.validate(request)).thenReturn(true);
-//
-//        // Устанавливаем корректную baseRate
-//        loanOfferFactory = new LoanOfferFactory(prescoringService);
-//
-//        LoanOfferDto offer = loanOfferFactory.createOffer(request, 12, true, false);
-//
-//        // Проверки
-//        assertNotNull(offer);
-//        assertEquals(new BigDecimal("100000"), offer.getRequestedAmount());
-//        assertEquals(new BigDecimal("200000"), offer.getTotalAmount());
-//        assertEquals(new BigDecimal("7"), offer.getRate());
-//    }
 }
 

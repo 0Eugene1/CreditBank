@@ -1,4 +1,4 @@
-package com.example.calculator.offerServiceTest;
+package com.example.calculator.service;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
@@ -25,7 +25,6 @@ import static org.mockito.Mockito.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +48,7 @@ public class LoanOfferServiceTest {
 
     @Test
     void shouldCreateAndSortLoanOffersSuccessfully() {
-        // Given: Валидный LoanStatementRequestDto
+        // Валидный LoanStatementRequestDto
         LoanStatementRequestDto request = new LoanStatementRequestDto();
         request.setAmount(new BigDecimal("100000"));
         request.setTerm(12);
@@ -68,10 +67,10 @@ public class LoanOfferServiceTest {
         Mockito.when(loanOfferFactory.createOffer(request, 12, true, false)).thenReturn(offer3);
         Mockito.when(loanOfferFactory.createOffer(request, 12, true, true)).thenReturn(offer4);
 
-        // When: Вызываем calculateLoanOffers
+        // Вызываем calculateLoanOffers
         List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(request);
 
-        // Then: Проверяем результат
+        // Проверяем результат
         Assertions.assertEquals(4, result.size(), "Should return 4 loan offers");
         Assertions.assertEquals(new BigDecimal("2.5"), result.get(0).getRate(), "First offer should have the lowest rate");
         Assertions.assertEquals(new BigDecimal("5.5"), result.get(3).getRate(), "Last offer should have the highest rate");
@@ -90,6 +89,7 @@ public class LoanOfferServiceTest {
         offer.setTotalAmount(totalAmount);
         return offer;
     }
+
     @Test
     public void calculateLoanOffers_prescoringFails() {
         LoanStatementRequestDto request = new LoanStatementRequestDto();
@@ -156,91 +156,34 @@ public class LoanOfferServiceTest {
             verify(loanOfferFactory, times(4)).createOffer(any(), anyInt(), anyBoolean(), anyBoolean());
         }
 
-        }
+    }
 
-        @Test
-        void testCalculateLoanOffers_PrescoringFails() {
-            // Подготовка данных
-            LoanStatementRequestDto request = new LoanStatementRequestDto();
-            request.setAmount(new BigDecimal("100000"));
-            request.setTerm(12);
-            request.setFirstName("John");
-            request.setLastName("Doe");
-            request.setMiddleName("Aev");
-            request.setEmail("john.doe@example.com");
-            request.setBirthDate(LocalDate.of(1990, 1, 1));
-            request.setPassportNumber("567890");
-            request.setPassportSeries("1234");
+    @Test
+    void testCalculateLoanOffers_PrescoringFails() {
+        // Подготовка данных
+        LoanStatementRequestDto request = new LoanStatementRequestDto();
+        request.setAmount(new BigDecimal("100000"));
+        request.setTerm(12);
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setMiddleName("Aev");
+        request.setEmail("john.doe@example.com");
+        request.setBirthDate(LocalDate.of(1990, 1, 1));
+        request.setPassportNumber("567890");
+        request.setPassportSeries("1234");
 
-            // Мокируем поведение prescoringService так, чтобы валидация не прошла
-            when(prescoringService.validate(request)).thenReturn(false);
+        // Мокируем поведение prescoringService так, чтобы валидация не прошла
+        when(prescoringService.validate(request)).thenReturn(false);
 
-            // Вызов тестируемого метода и проверка на то, что выбрасывается исключение
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> loanOfferService.calculateLoanOffers(request));
+        // Вызов тестируемого метода и проверка на то, что выбрасывается исключение
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> loanOfferService.calculateLoanOffers(request));
 
-            // Проверка на правильное сообщение исключения
-            assertEquals("Предварительная проверка заявки не пройдена", exception.getMessage());
+        // Проверка на правильное сообщение исключения
+        assertEquals("Предварительная проверка заявки не пройдена", exception.getMessage());
 
-            // Проверка, что метод фабрики не был вызван
-            verify(loanOfferFactory, never()).createOffer(any(), anyInt(), anyBoolean(), anyBoolean());
-        }
-//    //FIXME
-//
-//    @Test
-//    void calculateLoanOffers_shouldReturnValidOffers() {
-//        // Подготовка данных
-//        LoanStatementRequestDto request = new LoanStatementRequestDto();
-//        request.setAmount(new BigDecimal("100000"));
-//        request.setTerm(12);
-//        request.setFirstName("John");
-//        request.setLastName("Doe");
-//        request.setMiddleName("Aev");
-//        request.setEmail("john.doe@example.com");
-//        request.setBirthDate(LocalDate.of(1990, 1, 1));
-//        request.setPassportNumber("567890");
-//        request.setPassportSeries("1234");
-//
-//
-//        // Мокирование PrescoringService
-//        when(prescoringService.validate(request)).thenReturn(true);  // Убедитесь, что prescoring возвращает true для продолжения
-//
-//        // Мокирование LoanOfferFactory
-//        LoanOfferDto mockOffer1 = mock(LoanOfferDto.class);
-//        LoanOfferDto mockOffer2 = mock(LoanOfferDto.class);
-//        LoanOfferDto mockOffer3 = mock(LoanOfferDto.class);
-//        LoanOfferDto mockOffer4 = mock(LoanOfferDto.class);
-//
-//        // Настройка мока на возврат предложений
-//        when(loanOfferFactory.createOffer(request, 12, false, false)).thenReturn(mockOffer1);
-//        when(loanOfferFactory.createOffer(request, 12, true, false)).thenReturn(mockOffer2);
-//        when(loanOfferFactory.createOffer(request, 12, true, true)).thenReturn(mockOffer3);
-//        when(loanOfferFactory.createOffer(request, 12, false, true)).thenReturn(mockOffer4);
-//
-//        // Вызов метода
-//        List<LoanOfferDto> offers = loanOfferService.calculateLoanOffers(request);
-//
-//        // Логирование для диагностики
-//        System.out.println("Offers size after calculation: " + offers.size());
-//        offers.forEach(offer -> System.out.println("Offer: " + offer));
-//
-//        // Проверка
-//        assertNotNull(offers, "Offer list should not be null");
-//        assertEquals(4, offers.size(), "There should be 4 valid loan offers");
-//
-//        // Проверяем, что метод validate был вызван один раз
-//        verify(prescoringService, times(1)).validate(request);
-//
-//        // Проверяем, что метод createOffer был вызван 4 раза с правильными параметрами
-//        verify(loanOfferFactory, times(1)).createOffer(request, 12, false, false);
-//        verify(loanOfferFactory, times(1)).createOffer(request, 12, true, false);
-//        verify(loanOfferFactory, times(1)).createOffer(request, 12, true, true);
-//        verify(loanOfferFactory, times(1)).createOffer(request, 12, false, true);
-//
-//        // Проверка, что возвращенные предложения не содержат null или пустых rate
-//        for (LoanOfferDto offer : offers) {
-//            assertNotNull(offer, "Offer should not be null");
-//            assertNotNull(offer.getRate(), "Rate should not be null");
-//        }
+        // Проверка, что метод фабрики не был вызван
+        verify(loanOfferFactory, never()).createOffer(any(), anyInt(), anyBoolean(), anyBoolean());
+    }
 
     @Test
     void calculateLoanOffers_shouldThrowExceptionWhenPrescoringFails() {
@@ -252,7 +195,7 @@ public class LoanOfferServiceTest {
         request.setLastName("Doe");
         request.setMiddleName("Aev");
         request.setEmail("john.doe@example.com");
-        request.setBirthDate(LocalDate.of(1990,1,1));
+        request.setBirthDate(LocalDate.of(1990, 1, 1));
         request.setPassportNumber("567890");
         request.setPassportSeries("1234");
         // Мокирование PrescoringService

@@ -1,15 +1,13 @@
-package com.example.calculator.calcServiceTest;
+package com.example.calculator.service;
 
 
 import com.example.calculator.dto.CreditDto;
 import com.example.calculator.dto.ScoringDataDto;
-import com.example.calculator.service.LoanCalcService;
-import com.example.calculator.service.PrescoringService;
-import com.example.calculator.service.ScoringService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

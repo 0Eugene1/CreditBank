@@ -1,4 +1,4 @@
-package com.example.calculator.scoringTest;
+package com.example.calculator.service;
 
 import com.example.calculator.dto.EmploymentDto;
 import com.example.calculator.dto.ScoringDataDto;
@@ -48,7 +48,8 @@ public class ScoringServiceTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
     }
-    //FIXME
+
+
     @Test
     public void testCalculateRate_validData() {
         // Создание валидных данных
@@ -81,6 +82,7 @@ public class ScoringServiceTest {
         // Проверка baseRate в Spring контексте
         assertEquals(10.0, scoringServiceToTest.calculateRate(validData), 0.01);
     }
+
     @Test
     public void testInvalidAge() {
         ScoringDataDto invalidData = new ScoringDataDto();
@@ -160,41 +162,4 @@ public class ScoringServiceTest {
         assertEquals("Отказ по сумме займа", exception.getMessage());
     }
 
-    //FIXME
-//    @Test
-//    public void testCalculateRate_successfulCalculation() {
-//        // Создаём данные для теста
-//        ScoringDataDto scoringData = new ScoringDataDto();
-//        scoringData.setAmount(BigDecimal.valueOf(500000)); // Корректная сумма займа
-//        scoringData.setTerm(12); // Срок в месяцах
-//        scoringData.setBirthDate(LocalDate.of(1990, 1, 1)); // Возраст > 21 года
-//        scoringData.setGender(GenderEnum.MALE);
-//        scoringData.setMaritalStatus(MaritalStatusEnum.MARRIED);
-//        scoringData.setIsInsuranceEnabled(true);
-//        scoringData.setIsSalaryClient(true);
-//
-//
-//        EmploymentDto employment = new EmploymentDto();
-//        employment.setSalary(BigDecimal.valueOf(30000)); // Зарплата
-//        employment.setEmploymentStatus(EmploymentStatusEnum.BUSINESS_OWNER);
-//        employment.setWorkExperienceTotal(20); // Общий стаж
-//        employment.setWorkExperienceCurrent(7); // Стаж на текущем месте
-//        employment.setPosition(PositionEnum.MIDDLE_MANAGER);
-//        employment.setEmployerINN("123456789");
-//        scoringData.setEmployment(employment);
-//
-//
-//        // Мокируем, что prescoring прошёл
-//        when(prescoringServiceMock.validate(scoringData)).thenReturn(true);
-//
-//        // Рассчитываем ставку
-//        double rate = scoringServiceToTest.calculateRate(scoringData);
-//
-//        // Проверяем, что метод validate был вызван
-//        verify(prescoringServiceMock, times(1)).validate(scoringData);
-//
-//
-//        // Проверяем ожидаемый результат
-//        assertEquals(3.0, rate, 0.01);  // Ожидаем ставку 3.0
-//    }
-    }
+}

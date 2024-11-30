@@ -1,6 +1,5 @@
-package com.example.calculator.controllerTest;
+package com.example.calculator.controller;
 
-import com.example.calculator.controller.CalculatorController;
 import com.example.calculator.dto.CreditDto;
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
@@ -9,7 +8,6 @@ import com.example.calculator.service.LoanCalcService;
 import com.example.calculator.service.LoanOfferService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,12 +20,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CalculatorController.class)
@@ -57,7 +53,7 @@ public class CalculatorControllerTest {
         when(loanCalcService.calculateCredit(any(ScoringDataDto.class)))
                 .thenThrow(new IllegalArgumentException("Invalid data"));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")  // Используем MockMvcRequestBuilders для правильной работы
+        mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"amount\":100000, \"term\":12}"))
                 .andExpect(status().isOk())  // Проверка, что статус ответа OK

@@ -4,6 +4,7 @@ import com.example.calculator.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,14 +16,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class LoanCalcService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanCalcService.class);
-
     private final ScoringService scoringService;
     private final PrescoringService prescoringService;
-
 
     @Value("${loan.base-rate}")
     private double baseRate;
@@ -31,10 +30,6 @@ public class LoanCalcService {
         this.prescoringService = prescoringService;
         this.scoringService = scoringService;
     }
-    public void printBaseRate() {
-        // Логируем значение baseRate
-        logger.info("Loan base rate: " + baseRate);
-    }
 
     @Operation(summary = "Calculate Credit Details", description = "Calculates credit details including rate, monthly payment, PSK, and payment schedule.")
     @ApiResponses(value = {
@@ -42,33 +37,34 @@ public class LoanCalcService {
             @ApiResponse(responseCode = "400", description = "Bad request, prescoring validation failed")
     })
     public CreditDto calculateCredit(ScoringDataDto scoringData) {
-      logger.info("Start calculateCredit method");
+        log.info("Start calculateCredit method");
 
 
-      logger.info("Received scoringData: {}", scoringData);
+        log.info("Received scoringData: {}", scoringData);
         if (!prescoringService.validate(scoringData)) {
-            logger.warn("Prescoring failed for scoringData: {}", scoringData);
+            log.warn("Prescoring failed for scoringData: {}", scoringData);
             throw new IllegalArgumentException("Предварительная проверка заявки не пройдена");
         }
         // Рассчитываем % ставку rate
         double rate = baseRate + scoringService.calculateRate(scoringData);
-        logger.info("Calculated rate: {}", rate);
+        log.info("Calculated rate: {}", rate);
 
         // Рассчитываем ежемесячный платеж
         BigDecimal amount = scoringData.getAmount(); // Сумма кредита
         int term = scoringData.getTerm(); // Срок кредита
         double monthlyRate = rate / 100 / 12; // Месячная % ставка
+
         //Рассчитываем ежемесячный платеж
         BigDecimal monthlyPayment = calculateMonthlyPayment(amount, monthlyRate, term);
-        logger.info("Monthly payment: {}", monthlyPayment);
+        log.info("Monthly payment: {}", monthlyPayment);
 
         //Рассчитываем полную стоимость кредита PSK
         BigDecimal psk = monthlyPayment.multiply(BigDecimal.valueOf(term)); // сумма всех платежей
-        logger.info("PSK - total cost calculated: {}", psk);
+        log.info("PSK - total cost calculated: {}", psk);
 
         // График ежемесячных платежей
         List<PaymentScheduleElementDto> paymentSchedule = createPaymentSchedule(amount, monthlyRate, term, monthlyPayment);
-        logger.info("Payment schedule created: {}", paymentSchedule);
+        log.info("Payment schedule created: {}", paymentSchedule);
 
         CreditDto creditDto = new CreditDto();
         creditDto.setRate(BigDecimal.valueOf(rate)); //Ставка
@@ -79,29 +75,29 @@ public class LoanCalcService {
         creditDto.setIsSalaryClient(scoringData.getIsSalaryClient()); //Является ли клиент зарплатным
         creditDto.setPaymentSchedule(paymentSchedule);//График платежей
 
-        logger.info("Credit details calculated successfully: {}", creditDto);
+        log.info("Credit details calculated successfully: {}", creditDto);
 
         return creditDto;
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal amount, double monthlyRate, int term) {
-        logger.debug("Calculating monthly payment for amount: {}, monthlyRate: {}, term: {}", amount, monthlyRate, term);
+        log.debug("Calculating monthly payment for amount: {}, monthlyRate: {}, term: {}", amount, monthlyRate, term);
         // Рассчитываем ежемесячный платеж
 
         BigDecimal rateFactor = BigDecimal.valueOf(1 + monthlyRate);
-        logger.debug("Rate factor: {}", rateFactor);
+        log.debug("Rate factor: {}", rateFactor);
 
         BigDecimal denominator = rateFactor.pow(term).subtract(BigDecimal.ONE);
-        logger.debug("Denominator: {}", denominator);
+        log.debug("Denominator: {}", denominator);
 
         BigDecimal numerator = amount.multiply(BigDecimal.valueOf(monthlyRate)).multiply(rateFactor.pow(term));
-        logger.debug("Numerator: {}", numerator);
+        log.debug("Numerator: {}", numerator);
         return numerator.divide(denominator, 2, RoundingMode.HALF_UP); //Округление до 2х знаков после запятой
     }
 
     private List<PaymentScheduleElementDto> createPaymentSchedule(BigDecimal amount, double monthlyRate, int term,
                                                                   BigDecimal monthlyPayment) {
-        logger.debug("Creating payment schedule for amount: {}, monthlyRate: {}, term: {}, monthlyPayment: {}",
+        log.debug("Creating payment schedule for amount: {}, monthlyRate: {}, term: {}, monthlyPayment: {}",
                 amount, monthlyRate, term, monthlyPayment);
 
         List<PaymentScheduleElementDto> schedule = new ArrayList<>();
@@ -111,10 +107,17 @@ public class LoanCalcService {
             //Рассчитываем % и основную часть платежа для каждого месяца
             BigDecimal interestPayment = remainingDebt.multiply(BigDecimal.valueOf(monthlyRate)).setScale(2, RoundingMode.HALF_UP);
             BigDecimal debtPayment = monthlyPayment.subtract(interestPayment).setScale(2, RoundingMode.HALF_UP);
-            remainingDebt = remainingDebt.subtract(debtPayment).setScale(2, RoundingMode.HALF_UP);
+
+            //Если месяц последний, включаем оставшийся долг в последний платеж
+            if (i == term) {
+                debtPayment = debtPayment.add(remainingDebt).setScale(2, RoundingMode.HALF_DOWN);
+                remainingDebt = BigDecimal.ZERO; // обнуляем остаток
+            } else {
+                remainingDebt = remainingDebt.subtract(debtPayment).setScale(2, RoundingMode.HALF_UP);
+            }
 
             //лог данных по каждому месяцу
-            logger.debug("Month {}: interestPayment = {}, debtPayment = {}, remainingDebt = {}", i, interestPayment, debtPayment, remainingDebt);
+            log.debug("Month {}: interestPayment = {}, debtPayment = {}, remainingDebt = {}", i, interestPayment, debtPayment, remainingDebt);
 
 
             //Создаем элемент для графика
@@ -128,7 +131,7 @@ public class LoanCalcService {
 
             schedule.add(element);
         }
-        logger.debug("Payment schedule created: {}", schedule);
+        log.debug("Payment schedule created: {}", schedule);
         return schedule;
     }
 }

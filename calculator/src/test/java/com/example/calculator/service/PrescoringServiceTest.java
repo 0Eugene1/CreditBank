@@ -1,4 +1,4 @@
-package com.example.calculator.prescoringTest;
+package com.example.calculator.service;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,7 +102,7 @@ public class PrescoringServiceTest {
             // Мокирование других зависимостей
             mockedStatic.when(() -> PrescoringRules.validateName(validRequest.getFirstName())).thenReturn(true);
             mockedStatic.when(() -> PrescoringRules.validateName(validRequest.getLastName())).thenReturn(true);
-            mockedStatic.when(() -> PrescoringRules.validateName(validRequest.getMiddleName())).thenReturn(true); // если middleName не null
+            mockedStatic.when(() -> PrescoringRules.validateName(validRequest.getMiddleName())).thenReturn(true);
             mockedStatic.when(() -> PrescoringRules.validateCreditAmount(validRequest.getAmount())).thenReturn(true);
             mockedStatic.when(() -> PrescoringRules.validateLoanTerm(validRequest.getTerm())).thenReturn(true);
             mockedStatic.when(() -> PrescoringRules.validateBirthDate(validRequest.getBirthDate())).thenReturn(true);

@@ -1,4 +1,4 @@
-package com.example.calculator.scoringrulesTest;
+package com.example.calculator.scoring;
 
 import com.example.calculator.dto.EmploymentDto;
 import com.example.calculator.dto.ScoringDataDto;
@@ -6,7 +6,6 @@ import com.example.calculator.enums.EmploymentStatusEnum;
 import com.example.calculator.enums.GenderEnum;
 import com.example.calculator.enums.MaritalStatusEnum;
 import com.example.calculator.enums.PositionEnum;
-import com.example.calculator.scoring.ScoringRules;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

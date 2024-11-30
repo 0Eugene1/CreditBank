@@ -34,6 +34,4 @@ public class LoanOfferDto {
                 ", isSalaryClient=" + isSalaryClient +
                 '}';
     }
-
-
 }
