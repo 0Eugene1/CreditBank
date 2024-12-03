@@ -20,11 +20,11 @@ public class ScoringRules {
     @Value("${loan.base-rate}")
     private double baseRate;
 
-    public static double applyEmploymentStatus(ScoringDataDto data, double baseRate) {
-        EmploymentStatusEnum status = data.getEmployment().getEmploymentStatus();
-        log.debug("Applying employment status rule.Employment status: {}", status);
+    public static double applyEmploymentStatus(EmploymentStatusEnum employmentStatus, double baseRate) {
 
-        return switch (status) {
+        log.debug("Applying employment status rule.Employment status: {}", employmentStatus);
+
+        return switch (employmentStatus) {
             case UNEMPLOYED -> {
                 log.warn("Rejected due to employment status: UNEMPLOYED");
                 throw new IllegalArgumentException("Отказ по причине: безработный.");
@@ -42,8 +42,7 @@ public class ScoringRules {
     }
 
 
-    public static double applyPositionStatus(ScoringDataDto data, double baseRate) {
-        PositionEnum position = data.getEmployment().getPosition();
+    public static double applyPositionStatus(PositionEnum position, double baseRate) {
         log.debug("Applying position status rule. Position: {}", position);
 
         return switch (position) {
@@ -60,12 +59,14 @@ public class ScoringRules {
     }
 
 
-    public static boolean isLoanAmountAcceptable(ScoringDataDto data) {
+    public static void isLoanAmountAcceptable(ScoringDataDto data) {
         BigDecimal loanAmount = data.getAmount();
         BigDecimal maxLoanAmount = data.getEmployment().getSalary().multiply(BigDecimal.valueOf(24));
 
         log.debug("Checking loan amount. Loan amount: {}, Max loan amount: {}", loanAmount, maxLoanAmount);
-        return loanAmount.compareTo(maxLoanAmount) <= 0; // true, если допустимо
+        if (loanAmount.compareTo(maxLoanAmount) > 0) {
+            throw new IllegalArgumentException("Отказ по сумме займа."); // true, если допустимо
+        }
     }
 
 
@@ -90,8 +91,14 @@ public class ScoringRules {
         int age = Period.between(data.getBirthDate(), LocalDate.now()).getYears();
         log.debug("Checking age: {}", age);
 
-        return age >= 20 && age <= 65; // true, если возраст в пределах
+        if (age >= 20 && age <= 65) {
+            return true;
+        } else {
+            throw new IllegalArgumentException("Отказ по возрасту"); // true, если возраст в пределах
+        }
     }
+
+
 
     public static double applyGenderRule(ScoringDataDto data, double baseRate) {
         int age = Period.between(data.getBirthDate(), LocalDate.now()).getYears();
@@ -120,13 +127,16 @@ public class ScoringRules {
         };
     }
 
-    public static boolean isExperienceValid(ScoringDataDto data) {
-        EmploymentDto employment = data.getEmployment();
-        log.debug("Checking experience. Total experience: {}, Current experience: {}",
-                employment.getWorkExperienceTotal(), employment.getWorkExperienceCurrent());
+    public static boolean isExperienceValid(Integer workExperienceTotal, Integer workExperienceCurrent) {
+        if (workExperienceTotal == null || workExperienceCurrent == null) {
+            throw new IllegalArgumentException("Отказ по стажу: стаж не может быть пустым.");
+        }
 
-
-        return employment.getWorkExperienceTotal() >= 18 &&
-                employment.getWorkExperienceCurrent() >= 3; // true, если стаж валиден
+        // Проверка по условиям
+        if (workExperienceTotal >= 18 && workExperienceCurrent >= 3) {
+            return true;
+        } else {
+            throw new IllegalArgumentException("Отказ по стажу: недостаточный стаж.");
+        }
     }
 }

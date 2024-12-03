@@ -19,45 +19,47 @@ import java.math.BigDecimal;
 public class PrescoringService {
 
 
-    @ApiOperation(value = "Validate Loan Statement Request", notes = "Validates the loan statement request based on preset rules")
-    public boolean validate(LoanStatementRequestDto request) {
+    public void validate(LoanStatementRequestDto request) {
         log.info("Starting validation for LoanStatementRequestDto: {}", request);
 
+        // Валидация данных. Если данные невалидны, выбрасывается исключение
+        PrescoringRules.validateName(request.getFirstName());
+        PrescoringRules.validateName(request.getLastName());
 
-        boolean isValid = PrescoringRules.validateName(request.getFirstName()) &&
-                PrescoringRules.validateName(request.getLastName()) &&
-                (request.getMiddleName() == null || PrescoringRules.validateName(request.getMiddleName())) &&
-                PrescoringRules.validateCreditAmount(request.getAmount()) &&
-                PrescoringRules.validateLoanTerm(request.getTerm()) &&
-                PrescoringRules.validateBirthDate(request.getBirthDate()) &&
-                PrescoringRules.validateEmail(request.getEmail()) &&
-                PrescoringRules.validatePassport(request.getPassportSeries(), request.getPassportNumber());
-
-        if (isValid) {
-            log.info("Validation successful for LoanStatementRequestDto: {}", request);
-        } else {
-            log.warn("Validation failed for LoanStatementRequestDto: {}", request);
+        // Проверка на null для middleName, если оно есть, валидируем
+        if (request.getMiddleName() != null) {
+            PrescoringRules.validateName(request.getMiddleName());
         }
-        return isValid;
+
+        PrescoringRules.validateCreditAmount(request.getAmount());
+        PrescoringRules.validateLoanTerm(request.getTerm());
+        PrescoringRules.validateBirthDate(request.getBirthDate());
+        PrescoringRules.validateEmail(request.getEmail());
+        PrescoringRules.validatePassport(request.getPassportSeries(), request.getPassportNumber());
+
+        // Если дошли до сюда, значит валидация прошла успешно
+        log.info("LoanStatementRequestDto is valid.");
     }
 
-    @ApiOperation(value = "Validate Scoring Data", notes = "Validates the scoring data for loan application.")
-    public boolean validate(ScoringDataDto scoringData) {
-        log.info("Starting validation for ScoringDataDto: {}", scoringData);
 
-        boolean isValid = PrescoringRules.validateName(scoringData.getFirstName()) &&
-                PrescoringRules.validateName(scoringData.getLastName()) &&
-                PrescoringRules.validateCreditAmount(scoringData.getAmount()) &&
-                PrescoringRules.validateLoanTerm(scoringData.getTerm()) &&
-                PrescoringRules.validateBirthDate(scoringData.getBirthDate()) &&
-                PrescoringRules.validatePassport(scoringData.getPassportSeries(), scoringData.getPassportNumber());
+        public void validate(ScoringDataDto scoringData) {
+            log.info("Starting validation for ScoringDataDto: {}", scoringData);
 
+            // Валидация для каждого поля
+            PrescoringRules.validateName(scoringData.getFirstName());
+            PrescoringRules.validateName(scoringData.getLastName());
 
-        if (isValid) {
-            log.info("Validation successful for ScoringDataDto: {}", scoringData);
-        } else {
-            log.warn("Validation failed for ScoringDataDto: {}", scoringData);
-        }
-        return isValid;
+            // Проверка на null для middleName, если оно есть, валидируем
+            if (scoringData.getMiddleName() != null) {
+                PrescoringRules.validateName(scoringData.getMiddleName());
+            }
+
+            PrescoringRules.validateCreditAmount(scoringData.getAmount());
+            PrescoringRules.validateLoanTerm(scoringData.getTerm());
+            PrescoringRules.validateBirthDate(scoringData.getBirthDate());
+            PrescoringRules.validatePassport(scoringData.getPassportSeries(), scoringData.getPassportNumber());
+
+            // Если все прошло успешно, валидация успешна
+            log.info("ScoringDataDto is valid.");
     }
 }

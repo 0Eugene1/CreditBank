@@ -2,6 +2,7 @@ package com.example.calculator.factory;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
+import com.example.calculator.exception.CalculatorError;
 import com.example.calculator.service.PrescoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -17,7 +21,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.RequestEntity.post;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -40,19 +47,19 @@ public class LoanOfferFactoryTest {
     @Test
     void testCreateOffer_Success() {
         // Подготовка данных для теста
-        LoanStatementRequestDto request = new LoanStatementRequestDto();
-        request.setAmount(new BigDecimal("100000"));
-        request.setTerm(12);
-        request.setPassportSeries("1234");
-        request.setPassportNumber("567890");
-        request.setEmail("qweqweqwe@gmail.com");
-        request.setBirthDate(LocalDate.of(1990, 1, 1));
-        request.setMiddleName("Olegov");
-        request.setFirstName("Oleg");
-        request.setLastName("Olegovich");
-
+        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+                .amount(new BigDecimal("100000"))
+                .term(12)
+                .passportSeries("1234")
+                .passportNumber("567890")
+                .email("qweqweqwe@gmail.com")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .middleName("Olegov")
+                .firstName("Oleg")
+                .lastName("Olegovich")
+                .build();
         // Мокируем поведение prescoringService
-        when(prescoringService.validate(request)).thenReturn(true);
+        doNothing().when(prescoringService).validate(request); // Мокаем метод validate, который ничего не возвращает
 
         // Вызываем метод
         LoanOfferDto offer = loanOfferFactory.createOffer(request, 12, true, false);
@@ -63,32 +70,17 @@ public class LoanOfferFactoryTest {
         assertEquals(0, offer.getRate().compareTo(new BigDecimal("7.0"))); // Проверка ставки
     }
 
-    // Тестирование с неправильным prescoring (не прошел проверку)
-    @Test
-    void testCreateOffer_FailsPrescoring() {
-        // Подготовка данных для теста
-        LoanStatementRequestDto request = new LoanStatementRequestDto();
-        request.setAmount(new BigDecimal("100000"));
-        request.setTerm(12);
-
-        // Мокируем, что prescoring не прошёл
-        when(prescoringService.validate(request)).thenReturn(false);
-
-        // Ожидаем выброс исключения
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanOfferFactory.createOffer(request, 12, true, true);
-        });
-    }
 
     // Тестирование с null в amount
     @Test
     void testCreateOffer_AmountIsNull() {
-        LoanStatementRequestDto request = new LoanStatementRequestDto();
-        request.setAmount(null);
-        request.setTerm(12);
+        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+                .amount(null)
+                .term(12)
+                .build();
 
         // Мокируем, что prescoring прошёл
-        when(prescoringService.validate(request)).thenReturn(true);
+        doNothing().when(prescoringService).validate(request);
 
         // Ожидаем выброс исключения
         assertThrows(IllegalArgumentException.class, () -> {
@@ -99,12 +91,13 @@ public class LoanOfferFactoryTest {
     // Тестирование с неверным значением term
     @Test
     void testCreateOffer_InvalidTerm() {
-        LoanStatementRequestDto request = new LoanStatementRequestDto();
-        request.setAmount(new BigDecimal("100000"));
-        request.setTerm(0); // Неверный срок
+        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+                .amount(new BigDecimal("100000"))
+                .term(0)
+                .build();
 
         // Мокируем, что prescoring прошёл
-        when(prescoringService.validate(request)).thenReturn(true);
+        doNothing().when(prescoringService).validate(request);
 
         // Ожидаем выброс исключения
         assertThrows(IllegalArgumentException.class, () -> {
@@ -116,12 +109,13 @@ public class LoanOfferFactoryTest {
     @Test
     void testCreateOffer_InvalidBaseRate() {
         // Подготовка данных для теста
-        LoanStatementRequestDto request = new LoanStatementRequestDto();
-        request.setAmount(new BigDecimal("100000"));
-        request.setTerm(12);
+        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+                .amount(new BigDecimal("100000"))
+                .term(12)
+                .build();
 
         // Мокируем, что prescoring прошёл
-        when(prescoringService.validate(request)).thenReturn(true);
+        doNothing().when(prescoringService).validate(request);
 
         // Устанавливаем неправильную baseRate (например, 0)
         loanOfferFactory = new LoanOfferFactory(prescoringService);

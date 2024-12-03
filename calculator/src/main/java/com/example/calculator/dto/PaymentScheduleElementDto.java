@@ -1,15 +1,12 @@
 package com.example.calculator.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@NoArgsConstructor
-@Getter
-@Setter
+@Data
+@Builder
 public class PaymentScheduleElementDto {
 
     private Integer number;

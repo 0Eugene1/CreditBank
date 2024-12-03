@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -29,14 +31,9 @@ public class LoanOfferFactory {
 
         // Проверка baseRate
         if (baseRate <= 0) {
-            log.error("Base rate is not correctly configured: {}", baseRate);
             throw new IllegalStateException("Base rate is not correctly configured.");
         }
 
-        if (!prescoringService.validate(request)) {
-            log.warn("Prescoring failed for scoringData: {}", request);
-            throw new IllegalArgumentException("Предварительная проверка заявки не пройдена");
-        }
         if (request.getAmount() == null || request.getTerm() == null) {
             throw new IllegalArgumentException("Amount or Term cannot be null");
         }
@@ -102,4 +99,16 @@ public class LoanOfferFactory {
         }
         return offer;
     }
+
+    public List<LoanOfferDto> createOffers(LoanStatementRequestDto request, int term) {
+        // Создаем разные варианты предложений
+        List<LoanOfferDto> offers = new ArrayList<>();
+        offers.add(createOffer(request, term, false, false));  // Без страховки и зарплатного проекта
+        offers.add(createOffer(request, term, true, false));   // Со страховкой, без зарплатного проекта
+        offers.add(createOffer(request, term, false, true));   // Без страховки, с зарплатным проектом
+        offers.add(createOffer(request, term, true, true));    // Со страховкой и зарплатным проектом
+
+        return offers;
+    }
+
 }

@@ -2,6 +2,7 @@ package com.example.calculator.dto;
 
 import com.example.calculator.enums.EmploymentStatusEnum;
 import com.example.calculator.enums.PositionEnum;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,8 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Setter
-@Getter
+@Data
 @NoArgsConstructor
 public class EmploymentDto {
 
@@ -21,15 +21,4 @@ public class EmploymentDto {
     private Integer workExperienceTotal;
     private Integer workExperienceCurrent;
 
-    @Override
-    public String toString() {
-        return "EmploymentDto{" +
-                "employmentStatus=" + employmentStatus +
-                ", employerINN='" + employerINN + '\'' +
-                ", salary=" + salary +
-                ", position=" + position +
-                ", workExperienceTotal=" + workExperienceTotal +
-                ", workExperienceCurrent=" + workExperienceCurrent +
-                '}';
-    }
 }

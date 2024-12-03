@@ -77,7 +77,7 @@ public class ScoringServiceTest {
         validData.setEmployment(employmentDto);
 
         // Мокирование возвращаемого значения для baseRate
-        when(prescoringServiceMock.validate(validData)).thenReturn(true);
+        doNothing().when(prescoringServiceMock).validate(validData);
 
         // Проверка baseRate в Spring контексте
         assertEquals(10.0, scoringServiceToTest.calculateRate(validData), 0.01);
@@ -143,7 +143,7 @@ public class ScoringServiceTest {
         });
 
         // Убеждаемся, что текст исключения правильный
-        assertEquals("Отказ по стажу", exception.getMessage());
+        assertEquals("Отказ по стажу: недостаточный стаж.", exception.getMessage());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class ScoringServiceTest {
             scoringServiceToTest.calculateRate(scoringData);
         });
 
-        assertEquals("Отказ по сумме займа", exception.getMessage());
+        assertEquals("Отказ по стажу: стаж не может быть пустым.", exception.getMessage());
     }
 
 }

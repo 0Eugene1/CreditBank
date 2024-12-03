@@ -1,6 +1,7 @@
 package com.example.calculator.service;
 
 import com.example.calculator.dto.ScoringDataDto;
+import com.example.calculator.scoring.ScoringRules;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,23 +23,11 @@ public class ScoringService {
     @Operation(summary = "Calculate the loan rate based on scoring data",
             description = "Calculates the modified loan rate based on various conditions like age, experience, loan amount, etc.")
 
-    public double calculateRate(@Parameter(description = "Scoring data for calculating the loan rate") ScoringDataDto data) {
+    public double calculateRate(ScoringDataDto data) {
         log.info("Start calculating rate for ScoringData: {}", data);
 
-        // Проверки на отказ
-        if (!isLoanAmountAcceptable(data)) {
-            log.error("Loan amount validation failed for ScoringData: {}", data);
-            throw new IllegalArgumentException("Отказ по сумме займа");
-        }
         // Проверка стажа
-        if (!isExperienceValid(data)) {
-            log.error("Experience validation failed for Scoring data: {}", data);
-            throw new IllegalArgumentException("Отказ по стажу");
-        }
-        if (!isAgeValid(data)) {
-            log.error("Age validation failed for Scoring data: {}", data);
-            throw new IllegalArgumentException("Отказ по возрасту");
-        }
+        ScoringRules.isExperienceValid(data.getEmployment().getWorkExperienceTotal(), data.getEmployment().getWorkExperienceCurrent());
 
         double modifiedRate = baseRate;  // Используем локальную переменную для расчётов
 
@@ -48,10 +37,10 @@ public class ScoringService {
         //modified rate
         log.info("Base rate: {}", modifiedRate);
 
-        modifiedRate = applyEmploymentStatus(data, modifiedRate);
+        modifiedRate = applyEmploymentStatus(data.getEmployment().getEmploymentStatus(), modifiedRate);
         log.info("Rate after applying employment status: {}", modifiedRate);
 
-        modifiedRate = applyPositionStatus(data, modifiedRate);
+        modifiedRate = applyPositionStatus(data.getEmployment().getPosition(), modifiedRate);
         log.info("Rate after applying position status: {}", modifiedRate);
 
         modifiedRate = applyMaritalStatus(data, modifiedRate);
