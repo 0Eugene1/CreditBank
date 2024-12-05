@@ -1,36 +1,54 @@
 package com.example.calculator.dto;
 
-import com.example.calculator.dto.LoanOfferDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class LoanOfferDtoTest {
 
+    private UUID statementId;
+    private BigDecimal requestedAmount;
+    private BigDecimal totalAmount;
+    private Integer term;
+    private BigDecimal monthlyPayment;
+    private BigDecimal rate;
+    private Boolean isInsuranceEnabled;
+    private Boolean isSalaryClient;
+
+    private LoanOfferDto loanOfferDto;
+
+    @BeforeEach
+    public void setUp() {
+        // Подготовка данных, которые будут использоваться в тестах
+        statementId = UUID.randomUUID();
+        requestedAmount = new BigDecimal("50000");
+        totalAmount = new BigDecimal("55000");
+        term = 12;
+        monthlyPayment = new BigDecimal("4583.33");
+        rate = new BigDecimal("10.0");
+        isInsuranceEnabled = true;
+        isSalaryClient = false;
+
+        // Создаем объект LoanOfferDto
+        loanOfferDto = LoanOfferDto.builder()
+                .statementId(statementId)
+                .requestedAmount(requestedAmount)
+                .totalAmount(totalAmount)
+                .term(term)
+                .monthlyPayment(monthlyPayment)
+                .rate(rate)
+                .isInsuranceEnabled(isInsuranceEnabled)
+                .isSalaryClient(isSalaryClient)
+                .build();
+    }
+
     @Test
     public void testLoanOfferDtoConstructorAndGetters() {
-        // Создаем объект LoanOfferDto с тестовыми данными
-        UUID statementId = UUID.randomUUID();
-        BigDecimal requestedAmount = new BigDecimal("50000");
-        BigDecimal totalAmount = new BigDecimal("55000");
-        Integer term = 12;
-        BigDecimal monthlyPayment = new BigDecimal("4583.33");
-        BigDecimal rate = new BigDecimal("10.0");
-        Boolean isInsuranceEnabled = true;
-        Boolean isSalaryClient = false;
-
-        LoanOfferDto loanOfferDto = new LoanOfferDto();
-        loanOfferDto.setStatementId(statementId);
-        loanOfferDto.setRequestedAmount(requestedAmount);
-        loanOfferDto.setTotalAmount(totalAmount);
-        loanOfferDto.setTerm(term);
-        loanOfferDto.setMonthlyPayment(monthlyPayment);
-        loanOfferDto.setRate(rate);
-        loanOfferDto.setIsInsuranceEnabled(isInsuranceEnabled);
-        loanOfferDto.setIsSalaryClient(isSalaryClient);
 
         // Проверка всех значений
         assertEquals(statementId, loanOfferDto.getStatementId());
@@ -46,7 +64,7 @@ public class LoanOfferDtoTest {
     @Test
     public void testLoanOfferDtoDefaultConstructor() {
         // Создаем объект без параметров
-        LoanOfferDto loanOfferDto = new LoanOfferDto();
+        LoanOfferDto loanOfferDto = LoanOfferDto.builder().build();
 
         // Проверка значений по умолчанию
         assertNull(loanOfferDto.getStatementId());

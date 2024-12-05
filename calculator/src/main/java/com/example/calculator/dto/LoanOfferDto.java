@@ -1,12 +1,13 @@
 package com.example.calculator.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
+@Builder
 public class LoanOfferDto {
 
     private UUID statementId;

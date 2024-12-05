@@ -1,17 +1,12 @@
 package com.example.calculator.service;
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.example.calculator.dto.LoanStatementRequestDto;
 import com.example.calculator.dto.ScoringDataDto;
 import com.example.calculator.prescoring.PrescoringRules;
+import io.swagger.annotations.Api;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 @Api(tags = "Prescoring Service")
 @Slf4j
@@ -42,24 +37,24 @@ public class PrescoringService {
     }
 
 
-        public void validate(ScoringDataDto scoringData) {
-            log.info("Starting validation for ScoringDataDto: {}", scoringData);
+    public void validate(ScoringDataDto scoringData) {
+        log.info("Starting validation for ScoringDataDto: {}", scoringData);
 
-            // Валидация для каждого поля
-            PrescoringRules.validateName(scoringData.getFirstName());
-            PrescoringRules.validateName(scoringData.getLastName());
+        // Валидация для каждого поля
+        PrescoringRules.validateName(scoringData.getFirstName());
+        PrescoringRules.validateName(scoringData.getLastName());
 
-            // Проверка на null для middleName, если оно есть, валидируем
-            if (scoringData.getMiddleName() != null) {
-                PrescoringRules.validateName(scoringData.getMiddleName());
-            }
+        // Проверка на null для middleName, если оно есть, валидируем
+        if (scoringData.getMiddleName() != null) {
+            PrescoringRules.validateName(scoringData.getMiddleName());
+        }
 
-            PrescoringRules.validateCreditAmount(scoringData.getAmount());
-            PrescoringRules.validateLoanTerm(scoringData.getTerm());
-            PrescoringRules.validateBirthDate(scoringData.getBirthDate());
-            PrescoringRules.validatePassport(scoringData.getPassportSeries(), scoringData.getPassportNumber());
+        PrescoringRules.validateCreditAmount(scoringData.getAmount());
+        PrescoringRules.validateLoanTerm(scoringData.getTerm());
+        PrescoringRules.validateBirthDate(scoringData.getBirthDate());
+        PrescoringRules.validatePassport(scoringData.getPassportSeries(), scoringData.getPassportNumber());
 
-            // Если все прошло успешно, валидация успешна
-            log.info("ScoringDataDto is valid.");
+        // Если все прошло успешно, валидация успешна
+        log.info("ScoringDataDto is valid.");
     }
 }

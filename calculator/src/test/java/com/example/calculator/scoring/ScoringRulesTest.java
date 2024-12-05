@@ -6,11 +6,15 @@ import com.example.calculator.enums.EmploymentStatusEnum;
 import com.example.calculator.enums.GenderEnum;
 import com.example.calculator.enums.MaritalStatusEnum;
 import com.example.calculator.enums.PositionEnum;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -21,12 +25,37 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ScoringRulesTest {
 
+    @Value("${baseRate:10.0}") // Значение по умолчанию
+    private double baseRate;
+
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private Environment environment;
+
+    @BeforeEach
+    public void setup() {
+        baseRate = Double.parseDouble(environment.getProperty("baseRate", "10.0"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "SELF_EMPLOYED, 12.0",  // Увеличение на 2
+            "BUSINESS_OWNER, 11.0", // Увеличение на 1
+    })
+    public void testApplyEmploymentStatus(String employmentStatus, double expectedRate) {
+        EmploymentStatusEnum status = EmploymentStatusEnum.valueOf(employmentStatus);
+
+        double result = ScoringRules.applyEmploymentStatus(status, 10.0); // Всегда передаем фиксированное значение
+        assertEquals(expectedRate, result, 0.001);
+    }
+
 
     @Test
     public void testApplyEmploymentStatus_Unemployed_ShouldThrowException() {
@@ -37,114 +66,79 @@ public class ScoringRulesTest {
         });
     }
 
-    @Test
-    public void testApplyEmploymentStatus_SelfEmployed_ShouldIncreaseRateBy2() {
-        EmploymentStatusEnum status = EmploymentStatusEnum.SELF_EMPLOYED;
-        double baseRate = 10.0;
+    @ParameterizedTest
+    @CsvSource({
+            "MIDDLE_MANAGER, 8.0", // Уменьшение на 2
+            "TOP_MANAGER, 7.0",    // Уменьшение на 3
+    })
+    public void testApplyPositionStatus(String position, double expectedRate) {
+        PositionEnum positionEnum = PositionEnum.valueOf(position);
 
-        double result = ScoringRules.applyEmploymentStatus(status, baseRate);
-        assertEquals(12.0, result, 0.001);
+        double result = ScoringRules.applyPositionStatus(positionEnum, 10.0); // Фиксированная ставка
+        assertEquals(expectedRate, result, 0.001);
     }
 
-    @Test
-    public void testApplyEmploymentStatus_BusinessOwner_ShouldIncreaseRateBy1() {
-        EmploymentStatusEnum status = EmploymentStatusEnum.BUSINESS_OWNER;
-        double baseRate = 10.0;
-
-        double result = ScoringRules.applyEmploymentStatus(status, baseRate);
-
-        assertEquals(11.0, result, 0.001); // Ожидаем увеличение ставки на 1
-    }
 
     @Test
-    public void testApplyPositionStatus_MiddleManager_ShouldDecreaseRateBy2() {
-        PositionEnum status = PositionEnum.MIDDLE_MANAGER;
-        double baseRate = 10.0;
+    public void testIsLoanAmountAcceptable_ShouldReturnBadRequest() throws Exception {
+        // Создаём JSON строку с данными, включая обязательные поля
+        String jsonRequest = "{"
+                + "\"amount\": 50000,"  // Сумма кредита
+                + "\"term\": 12,"  // Срок
+                + "\"firstName\": \"John\","  // Имя
+                + "\"lastName\": \"Doe\","  // Фамилия
+                + "\"middleName\": \"Aev\","  // Отчество
+                + "\"email\": \"john.doe@example.com\","  // Email
+                + "\"birthDate\": \"1990-01-01\","  // Дата рождения
+                + "\"passportSeries\": \"1234\","  // Серия паспорта
+                + "\"passportNumber\": \"567890\""  // Номер паспорта
+                + "}";
 
-        double result = ScoringRules.applyPositionStatus(status, baseRate);
-        assertEquals(8.0, result, 0.001);
+        // Выполняем запрос и проверяем, что статус 400 и ошибка в теле ответа
+        mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")  // Путь к контроллеру
+                        .contentType(MediaType.APPLICATION_JSON)  // Указываем тип контента
+                        .content(jsonRequest))  // Используем JSON строку напрямую
+                .andExpect(status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Произошла внутренняя ошибка"));  // Проверка ошибки
     }
-
-    @Test
-    public void testApplyPositionStatus_TopManager_ShouldDecreaseRateBy3() {
-        PositionEnum status = PositionEnum.TOP_MANAGER;
-        double baseRate = 10.0;
-
-        double result = ScoringRules.applyPositionStatus(status, baseRate);
-        assertEquals(7.0, result, 0.001);
-    }
-
-//    @Test
-//    public void testIsLoanAmountAcceptable_ShouldReturnTrue() {
-//        ScoringDataDto data = new ScoringDataDto();
-//        EmploymentDto employment = new EmploymentDto();
-//        employment.setSalary(BigDecimal.valueOf(30000)); // Зарплата
-//        data.setEmployment(employment);
-//        data.setAmount(BigDecimal.valueOf(50000)); // Сумма займа
-//
-//        assertThrows(IllegalArgumentException.class, () -> {
-//            ScoringRules.isLoanAmountAcceptable(data);
-//        });
-//    }
-@Test
-public void testIsLoanAmountAcceptable_ShouldReturnBadRequest() throws Exception {
-    // Создаём JSON строку с данными, включая обязательные поля
-    String jsonRequest = "{"
-            + "\"amount\": 50000,"  // Сумма кредита
-            + "\"term\": 12,"  // Срок
-            + "\"firstName\": \"John\","  // Имя
-            + "\"lastName\": \"Doe\","  // Фамилия
-            + "\"middleName\": \"Aev\","  // Отчество
-            + "\"email\": \"john.doe@example.com\","  // Email
-            + "\"birthDate\": \"1990-01-01\","  // Дата рождения
-            + "\"passportSeries\": \"1234\","  // Серия паспорта
-            + "\"passportNumber\": \"567890\""  // Номер паспорта
-            + "}";
-
-    // Выполняем запрос и проверяем, что статус 400 и ошибка в теле ответа
-    mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")  // Путь к контроллеру
-                    .contentType(MediaType.APPLICATION_JSON)  // Указываем тип контента
-                    .content(jsonRequest))  // Используем JSON строку напрямую
-            .andExpect(status().isInternalServerError())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Произошла внутренняя ошибка"));  // Проверка ошибки
-}
 
 
     @Test
     public void testIsLoanAmountAcceptable_ShouldReturnFalse() {
-        ScoringDataDto data = new ScoringDataDto();
-        EmploymentDto employment = new EmploymentDto();
-        employment.setSalary(BigDecimal.valueOf(30000)); // Зарплата
-        data.setEmployment(employment);
-        data.setAmount(BigDecimal.valueOf(1000000)); // Сумма займа слишком большая
+        EmploymentDto employment = EmploymentDto.builder()
+                .salary(BigDecimal.valueOf(30000))
+                .build();
+
+        ScoringDataDto data = ScoringDataDto.builder()
+                .employment(employment)
+                .amount(BigDecimal.valueOf(1000000))  // Сумма займа слишком большая
+                .build();
 
         assertThrows(IllegalArgumentException.class, () -> {
             ScoringRules.isLoanAmountAcceptable(data);
         });
     }
 
-    @Test
-    public void testApplyMaritalStatus_Married_ShouldDecreaseRateBy3() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setMaritalStatus(MaritalStatusEnum.MARRIED);
+    @ParameterizedTest
+    @CsvSource({
+            "MARRIED, 7.0",    // Ожидаем уменьшение на 3
+            "DIVORCED, 11.0"   // Ожидаем увеличение на 1
+    })
+    public void testApplyMaritalStatus(MaritalStatusEnum maritalStatus, double expectedRate) {
+        ScoringDataDto data = ScoringDataDto.builder()
+                .maritalStatus(maritalStatus)
+                .build();
 
-        double rate = ScoringRules.applyMaritalStatus(data, 5.0);
-        assertEquals(2.0, rate);
+        double rate = ScoringRules.applyMaritalStatus(data.getMaritalStatus(), 10.0); // Используем фиксированную ставку
+        assertEquals(expectedRate, rate);
     }
 
-    @Test
-    public void testApplyMaritalStatus_Divorced_ShouldIncreaseRateBy1() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setMaritalStatus(MaritalStatusEnum.DIVORCED);
-
-        double rate = ScoringRules.applyMaritalStatus(data, 5.0);
-        assertEquals(6.0, rate);
-    }
 
     @Test
     public void testIsAgeValid_AgeWithinRange_ShouldReturnTrue() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setBirthDate(LocalDate.of(1990, 1, 1)); // Возраст 34 года
+        ScoringDataDto data = ScoringDataDto.builder()
+                .birthDate(LocalDate.of(1990, 1, 1)) // Возраст 34 года
+                .build();
 
         boolean result = ScoringRules.isAgeValid(data);
         assertTrue(result);
@@ -152,52 +146,42 @@ public void testIsLoanAmountAcceptable_ShouldReturnBadRequest() throws Exception
 
     @Test
     public void testIsAgeValid_AgeTooYoung_ShouldReturnFalse() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setBirthDate(LocalDate.of(2020, 1, 1)); //
-
+        ScoringDataDto data = ScoringDataDto.builder()
+                .birthDate(LocalDate.of(2020, 1, 1))
+                .build();
 
         assertThrows(NullPointerException.class, () -> {
             ScoringRules.isLoanAmountAcceptable(data);
         });
     }
 
-    @Test
-    public void testApplyGenderRule_FemaleAgeBetween32And60_ShouldDecreaseRateBy3() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setGender(GenderEnum.FEMALE);
-        data.setBirthDate(LocalDate.of(1985, 1, 1)); // Возраст 39 лет
+    @ParameterizedTest
+    @CsvSource({
+            "FEMALE, 5.0, 2.0", // Женщина, возраст между 32 и 60, уменьшение на 3
+            "MALE, 5.0, 2.0",   // Мужчина, возраст между 30 и 55, уменьшение на 3
+            "NON_BINARY, 5.0, 12.0"  // Небинарный, увеличение на 7
+    })
+    public void testApplyGenderRule(GenderEnum gender, double baseRate, double expectedRate) {
+        ScoringDataDto data = ScoringDataDto.builder()
+                .gender(gender)
+                .birthDate(LocalDate.of(1985, 1, 1))  // Возраст 39 для женщины и мужчины
+                .build();
 
-        double rate = ScoringRules.applyGenderRule(data, 5.0);
-        assertEquals(2.0, rate);
+        double rate = ScoringRules.applyGenderRule(data.getGender(), data.getBirthDate(), baseRate);
+        assertEquals(expectedRate, rate, 0.001);
     }
 
-    @Test
-    public void testApplyGenderRule_MaleAgeBetween30And55_ShouldDecreaseRateBy3() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setGender(GenderEnum.MALE);
-        data.setBirthDate(LocalDate.of(1985, 1, 1)); // Возраст 39 лет
-
-        double rate = ScoringRules.applyGenderRule(data, 5.0);
-        assertEquals(2.0, rate);
-    }
-
-    @Test
-    public void testApplyGenderRule_NonBinary_ShouldIncreaseRateBy7() {
-        ScoringDataDto data = new ScoringDataDto();
-        data.setGender(GenderEnum.NON_BINARY);
-        data.setBirthDate(LocalDate.of(1995, 1, 1)); // Возраст 29 лет
-
-        double rate = ScoringRules.applyGenderRule(data, 5.0);
-        assertEquals(12.0, rate);
-    }
 
     @Test
     public void testIsExperienceValid_ShouldReturnTrue() {
-        ScoringDataDto data = new ScoringDataDto();
-        EmploymentDto employment = new EmploymentDto();
-        employment.setWorkExperienceTotal(20);
-        employment.setWorkExperienceCurrent(5);
-        data.setEmployment(employment);
+        EmploymentDto employment = EmploymentDto.builder()
+                .workExperienceTotal(20)
+                .workExperienceCurrent(5)
+                .build();
+
+        ScoringDataDto data = ScoringDataDto.builder()
+                .employment(employment)
+                .build();
 
         boolean result = ScoringRules.isExperienceValid(
                 data.getEmployment().getWorkExperienceTotal(),
@@ -208,11 +192,14 @@ public void testIsLoanAmountAcceptable_ShouldReturnBadRequest() throws Exception
 
     @Test
     public void testIsExperienceValid_ShouldReturnFalse() {
-        ScoringDataDto data = new ScoringDataDto();
-        EmploymentDto employment = new EmploymentDto();
-        employment.setWorkExperienceTotal(20);
-        employment.setWorkExperienceCurrent(10);
-        data.setEmployment(employment);
+        EmploymentDto employment = EmploymentDto.builder()
+                .workExperienceTotal(20)
+                .workExperienceCurrent(18)
+                .build();
+
+        ScoringDataDto data = ScoringDataDto.builder()
+                .employment(employment)
+                .build();
 
         boolean result = ScoringRules.isExperienceValid(
                 data.getEmployment().getWorkExperienceTotal(),

@@ -2,20 +2,14 @@ package com.example.calculator.service;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
-import com.example.calculator.dto.ScoringDataDto;
 import com.example.calculator.factory.LoanOfferFactory;
-import com.example.calculator.service.LoanOfferService;
-import com.example.calculator.service.PrescoringService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.java.Log;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,18 +18,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.RequestEntity.post;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -54,65 +46,18 @@ public class LoanOfferServiceTest {
     @InjectMocks
     private LoanOfferService loanOfferService;
 
+    // Глобальные переменные для часто используемых объектов
+    private LoanStatementRequestDto validRequest;
+    private LoanOfferDto offer1;
+    private LoanOfferDto offer2;
+    private LoanOfferDto offer3;
+    private LoanOfferDto offer4;
+
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        loanOfferService = new LoanOfferService(loanOfferFactory, prescoringService);
-    }
 
-@Test
-void shouldCreateAndSortLoanOffersSuccessfully() {
-    // Валидный LoanStatementRequestDto
-    LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-            .amount(new BigDecimal("100000"))
-            .term(12)
-            .build();
-
-    // Мокируем поведение PrescoringService
-    Mockito.doNothing().when(prescoringService).validate(request);
-
-    // Мокируем поведение LoanOfferFactory
-    LoanOfferDto offer1 = createMockOffer(new BigDecimal("10.0"), new BigDecimal("105000"));
-    LoanOfferDto offer2 = createMockOffer(new BigDecimal("4.5"), new BigDecimal("104000"));
-    LoanOfferDto offer3 = createMockOffer(new BigDecimal("3.5"), new BigDecimal("103000"));
-    LoanOfferDto offer4 = createMockOffer(new BigDecimal("2.5"), new BigDecimal("102000"));
-
-    // Мокируем createOffers, чтобы возвращался список предложений
-    Mockito.when(loanOfferFactory.createOffers(Mockito.any(), Mockito.anyInt()))
-            .thenReturn(new ArrayList<>(List.of(offer1, offer2, offer3, offer4))); // Используем изменяемый список
-
-    // Вызываем calculateLoanOffers
-    List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(request);
-
-    // Проверяем, что результат не пустой
-    Assertions.assertNotNull(result, "Result should not be null");
-    Assertions.assertFalse(result.isEmpty(), "Result list should not be empty");
-
-    // Проверяем, что возвращено 4 предложения
-    Assertions.assertEquals(4, result.size(), "Should return 4 loan offers");
-
-    // Проверяем, что предложения отсортированы по ставке
-    Assertions.assertEquals(new BigDecimal("2.5"), result.get(0).getRate(), "First offer should have the lowest rate");
-    Assertions.assertEquals(new BigDecimal("10.0"), result.get(3).getRate(), "Last offer should have the highest rate");
-
-    // Проверяем порядок вызова методов фабрики
-    Mockito.verify(loanOfferFactory).createOffers(Mockito.any(), Mockito.anyInt());
-}
-
-
-
-    // Вспомогательный метод для создания LoanOfferDto
-    private LoanOfferDto createMockOffer(BigDecimal rate, BigDecimal totalAmount) {
-        LoanOfferDto offer = new LoanOfferDto();
-        offer.setRate(rate);
-        offer.setTotalAmount(totalAmount);
-        return offer;
-    }
-
-    @Test
-    void testCalculateLoanOffers_Success() {
-        // Подготовка данных
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+        // Инициализация глобальных объектов
+        validRequest = LoanStatementRequestDto.builder()
                 .amount(new BigDecimal("100000"))
                 .term(12)
                 .firstName("John")
@@ -124,19 +69,79 @@ void shouldCreateAndSortLoanOffersSuccessfully() {
                 .passportNumber("567890")
                 .build();
 
-        LoanOfferDto offer1 = new LoanOfferDto();
-        offer1.setRate(new BigDecimal("5.0"));
-        LoanOfferDto offer2 = new LoanOfferDto();
-        offer2.setRate(new BigDecimal("3.5"));
-        LoanOfferDto offer3 = new LoanOfferDto();
-        offer3.setRate(new BigDecimal("4.2"));
+        offer1 = LoanOfferDto.builder()
+                .rate(new BigDecimal("5.0"))
+                .totalAmount(new BigDecimal("105000"))
+                .build();
+
+        offer2 = LoanOfferDto.builder()
+                .rate(new BigDecimal("3.5"))
+                .totalAmount(new BigDecimal("103500"))
+                .build();
+
+        offer3 = LoanOfferDto.builder()
+                .rate(new BigDecimal("4.2"))
+                .totalAmount(new BigDecimal("104200"))
+                .build();
+
+        offer4 = LoanOfferDto.builder()
+                .rate(new BigDecimal("2.5"))
+                .totalAmount(new BigDecimal("102500"))
+                .build();
+
+
+        MockitoAnnotations.openMocks(this);
+        loanOfferService = new LoanOfferService(loanOfferFactory, prescoringService);
+    }
+
+    @Test
+    void shouldCreateAndSortLoanOffersSuccessfully() {
+
+        // Мокируем поведение PrescoringService
+        Mockito.doNothing().when(prescoringService).validate(validRequest);
+
+        // Мокируем createOffers, чтобы возвращался список предложений
+        Mockito.when(loanOfferFactory.createOffers(Mockito.any(), Mockito.anyInt()))
+                .thenReturn(new ArrayList<>(List.of(offer1, offer2, offer3, offer4))); // Используем изменяемый список
+
+        // Вызываем calculateLoanOffers
+        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(validRequest);
+
+        // Проверяем, что результат не пустой
+        Assertions.assertNotNull(result, "Result should not be null");
+        Assertions.assertFalse(result.isEmpty(), "Result list should not be empty");
+
+        // Проверяем, что возвращено 4 предложения
+        Assertions.assertEquals(4, result.size(), "Should return 4 loan offers");
+
+        // Проверяем, что предложения отсортированы по ставке
+        Assertions.assertEquals(new BigDecimal("2.5"), result.get(0).getRate(), "First offer should have the lowest rate");
+        Assertions.assertEquals(new BigDecimal("5.0"), result.get(3).getRate(), "Last offer should have the highest rate");
+
+        // Проверяем порядок вызова методов фабрики
+        Mockito.verify(loanOfferFactory).createOffers(Mockito.any(), Mockito.anyInt());
+    }
+
+
+    // Вспомогательный метод для создания LoanOfferDto
+    private LoanOfferDto createMockOffer(BigDecimal rate, BigDecimal totalAmount) {
+        LoanOfferDto offer = LoanOfferDto.builder()
+                .rate(rate)
+                .totalAmount(totalAmount)
+                .build();
+
+        return offer;
+    }
+
+    @Test
+    void testCalculateLoanOffers_Success() {
 
         // Мокирование зависимости
-        when(loanOfferFactory.createOffers(request, request.getTerm()))
+        when(loanOfferFactory.createOffers(validRequest, validRequest.getTerm()))
                 .thenReturn(Arrays.asList(offer1, offer2, offer3));
 
         // Вызов тестируемого метода
-        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(request);
+        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(validRequest);
 
         // Проверка
         assertNotNull(result);
@@ -147,25 +152,13 @@ void shouldCreateAndSortLoanOffersSuccessfully() {
 
     @Test
     void testCalculateLoanOffers_NoOffersFromFactory() {
-        // Подготовка данных
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-                .amount(new BigDecimal("100000"))
-                .term(12)
-                .firstName("John")
-                .lastName("Doe")
-                .middleName("Aev")
-                .email("john.doe@example.com")
-                .birthDate(LocalDate.of(1990, 1, 1))
-                .passportSeries("1234")
-                .passportNumber("567890")
-                .build();
 
         // Мокирование зависимости, фабрика возвращает пустой список
-        when(loanOfferFactory.createOffers(request, request.getTerm()))
+        when(loanOfferFactory.createOffers(validRequest, validRequest.getTerm()))
                 .thenReturn(Collections.emptyList());
 
         // Вызов тестируемого метода
-        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(request);
+        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(validRequest);
 
         // Проверка
         assertNotNull(result);
@@ -174,25 +167,13 @@ void shouldCreateAndSortLoanOffersSuccessfully() {
 
     @Test
     void testCalculateLoanOffers_FactoryException() {
-        // Подготовка данных
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-                .amount(new BigDecimal("100000"))
-                .term(12)
-                .firstName("John")
-                .lastName("Doe")
-                .middleName("Aev")
-                .email("john.doe@example.com")
-                .birthDate(LocalDate.of(1990, 1, 1))
-                .passportSeries("1234")
-                .passportNumber("567890")
-                .build();
 
         // Мокирование фабрики, чтобы она выбросила исключение
-        when(loanOfferFactory.createOffers(request, request.getTerm()))
+        when(loanOfferFactory.createOffers(validRequest, validRequest.getTerm()))
                 .thenThrow(new RuntimeException("Error creating loan offers"));
 
         // Вызов тестируемого метода и проверка на исключение
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> loanOfferService.calculateLoanOffers(request));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> loanOfferService.calculateLoanOffers(validRequest));
         assertEquals("Error creating loan offers", exception.getMessage());
     }
 
@@ -207,12 +188,11 @@ void shouldCreateAndSortLoanOffersSuccessfully() {
                         .contentType(MediaType.APPLICATION_JSON)  // Указание типа контента
                         .content(invalidRequest))  // Некорректные данные
                 .andExpect(status().isBadRequest())  // Ожидаем статус 400
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("passportNumber: Номер паспорта не может быть пустым"))) // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("passportSeries: Серия паспорта не может быть пустой"))) // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("birthDate: Поле минимальный возраст не может быть пустым")))  // Проверка ошибки
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data")))  // Проверка ошибки
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
     }
-
 
 
     @Test

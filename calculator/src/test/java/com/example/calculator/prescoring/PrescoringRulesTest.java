@@ -9,7 +9,6 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Fail.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PrescoringRulesTest {
 
@@ -39,41 +38,42 @@ public class PrescoringRulesTest {
         });
     }
 
-    @Test
-    public void testValidateCreditAmount_ValidAmount_ShouldReturnTrue() {
-        BigDecimal amount = new BigDecimal("25000");
+
+    @ParameterizedTest
+    @ValueSource(strings = {"25000", "100000"})
+    public void testValidateCreditAmount_ValidAmounts_ShouldNotThrowException(String amount) {
         try {
-            PrescoringRules.validateCreditAmount(amount);
+            PrescoringRules.validateCreditAmount(new BigDecimal(amount));
         } catch (IllegalArgumentException e) {
-            fail("Exception should not be thrown for valid amount");
+            fail("Exception should not be thrown for valid amount: " + amount);
         }
     }
 
-    @Test
-    public void testValidateCreditAmount_InvalidAmount_ShouldThrowException() {
-        BigDecimal amount = new BigDecimal("10000"); // Сумма меньше минимальной
+    @ParameterizedTest
+    @ValueSource(strings = {"5000", "9999", "0"})
+    public void testValidateCreditAmount_InvalidAmounts_ShouldThrowException(String amount) {
         assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateCreditAmount(amount);
+            PrescoringRules.validateCreditAmount(new BigDecimal(amount));
         });
     }
 
-    @Test
-    public void testValidateLoanTerm_ValidTerm_ShouldReturnTrue() {
-        int loanTerm = 12; // Срок кредита больше 6 месяцев
+
+    @ParameterizedTest
+    @ValueSource(ints = {6, 12, 24, 36})
+    public void testValidateLoanTerm_ValidTerms_ShouldNotThrowException(int term) {
         try {
-            PrescoringRules.validateLoanTerm(loanTerm);
+            PrescoringRules.validateLoanTerm(term);
         } catch (IllegalArgumentException e) {
-            fail("Exception should not be thrown for valid loan term");
+            fail("Exception should not be thrown for valid loan term: " + term);
         }
     }
 
-    @Test
-    public void testValidateLoanTerm_InvalidTerm_ShouldThrowException() {
-        int loanTerm = 5; // Срок меньше 6 месяцев
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateLoanTerm(loanTerm);
-        });
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 5})
+    public void testValidateLoanTerm_InvalidTerms_ShouldThrowException(int term) {
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validateLoanTerm(term));
     }
+
 
     @Test
     public void testValidateBirthDate_ValidBirthDate_ShouldReturnTrue() {
@@ -93,50 +93,54 @@ public class PrescoringRulesTest {
         });
     }
 
-    @Test
-    public void testValidateEmail_ValidEmail_ShouldReturnTrue() {
-        String email = "test@example.com";
+
+    @ParameterizedTest
+    @ValueSource(strings = {"user@example.com", "test.user@domain.org", "name.surname@mail.co"})
+    public void testValidateEmail_ValidEmails_ShouldNotThrowException(String email) {
         try {
             PrescoringRules.validateEmail(email);
         } catch (IllegalArgumentException e) {
-            fail("Exception should not be thrown for valid email");
+            fail("Exception should not be thrown for valid email: " + email);
         }
     }
 
-    @Test
-    public void testValidateEmail_InvalidEmail_ShouldThrowException() {
-        String email = "test.com"; // Невалидный email
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateEmail(email);
-        });
+    @ParameterizedTest
+    @ValueSource(strings = {"test.com"})
+    public void testValidateEmail_InvalidEmails_ShouldThrowException(String email) {
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validateEmail(email));
     }
 
-    @Test
-    public void testValidatePassport_ValidPassport_ShouldReturnTrue() {
-        String passportSeries = "1234";
-        String passportNumber = "123456";
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1234", "5678", "4321"})
+    public void testValidatePassport_ValidSeries_ShouldNotThrowException(String series) {
         try {
-            PrescoringRules.validatePassport(passportSeries, passportNumber);
+            PrescoringRules.validatePassport(series, "123456");
         } catch (IllegalArgumentException e) {
-            fail("Exception should not be thrown for valid passport");
+            fail("Exception should not be thrown for valid passport series: " + series);
         }
     }
 
-    @Test
-    public void testValidatePassport_InvalidPassportSeries_ShouldThrowException() {
-        String passportSeries = "12"; // Неверная длина серии паспорта
-        String passportNumber = "123456";
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validatePassport(passportSeries, passportNumber);
-        });
+    @ParameterizedTest
+    @ValueSource(strings = {"12", "123", "abcd"})
+    public void testValidatePassport_InvalidSeries_ShouldThrowException(String series) {
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validatePassport(series, "123456"));
     }
 
-    @Test
-    public void testValidatePassport_InvalidPassportNumber_ShouldThrowException() {
-        String passportSeries = "1234";
-        String passportNumber = "123"; // Неверная длина номера паспорта
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validatePassport(passportSeries, passportNumber);
-        });
+    @ParameterizedTest
+    @ValueSource(strings = {"123456", "654321", "000001"})
+    public void testValidatePassport_ValidNumbers_ShouldNotThrowException(String number) {
+        try {
+            PrescoringRules.validatePassport("1234", number);
+        } catch (IllegalArgumentException e) {
+            fail("Exception should not be thrown for valid passport number: " + number);
+        }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12", "123", "000"})
+    public void testValidatePassport_InvalidNumbers_ShouldThrowException(String number) {
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validatePassport("1234", number));
+    }
+
 }

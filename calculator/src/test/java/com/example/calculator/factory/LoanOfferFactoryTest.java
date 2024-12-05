@@ -2,7 +2,6 @@ package com.example.calculator.factory;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
-import com.example.calculator.exception.CalculatorError;
 import com.example.calculator.service.PrescoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,9 +10,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -21,10 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.RequestEntity.post;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -37,17 +30,14 @@ public class LoanOfferFactoryTest {
     @Autowired
     private LoanOfferFactory loanOfferFactory;
 
+    private LoanStatementRequestDto validRequest;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-    }
-
-    // Тестирование успешного создания предложения
-    @Test
-    void testCreateOffer_Success() {
-        // Подготовка данных для теста
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
+        // Инициализация стандартного валидного запроса
+        validRequest = LoanStatementRequestDto.builder()
                 .amount(new BigDecimal("100000"))
                 .term(12)
                 .passportSeries("1234")
@@ -58,11 +48,18 @@ public class LoanOfferFactoryTest {
                 .firstName("Oleg")
                 .lastName("Olegovich")
                 .build();
+
+    }
+
+    // Тестирование успешного создания предложения
+    @Test
+    void testCreateOffer_Success() {
+
         // Мокируем поведение prescoringService
-        doNothing().when(prescoringService).validate(request); // Мокаем метод validate, который ничего не возвращает
+        doNothing().when(prescoringService).validate(validRequest); // Мокаем метод validate, который ничего не возвращает
 
         // Вызываем метод
-        LoanOfferDto offer = loanOfferFactory.createOffer(request, 12, true, false);
+        LoanOfferDto offer = loanOfferFactory.createOffer(validRequest, 12, true, false);
 
         // Проверки
         assertNotNull(offer);
@@ -74,55 +71,44 @@ public class LoanOfferFactoryTest {
     // Тестирование с null в amount
     @Test
     void testCreateOffer_AmountIsNull() {
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-                .amount(null)
-                .term(12)
-                .build();
+        validRequest.setAmount(null);
 
         // Мокируем, что prescoring прошёл
-        doNothing().when(prescoringService).validate(request);
+        doNothing().when(prescoringService).validate(validRequest);
 
         // Ожидаем выброс исключения
         assertThrows(IllegalArgumentException.class, () -> {
-            loanOfferFactory.createOffer(request, 12, true, true);
+            loanOfferFactory.createOffer(validRequest, 12, true, true);
         });
     }
 
     // Тестирование с неверным значением term
     @Test
     void testCreateOffer_InvalidTerm() {
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-                .amount(new BigDecimal("100000"))
-                .term(0)
-                .build();
+        validRequest.setTerm(0);
 
         // Мокируем, что prescoring прошёл
-        doNothing().when(prescoringService).validate(request);
+        doNothing().when(prescoringService).validate(validRequest);
 
         // Ожидаем выброс исключения
         assertThrows(IllegalArgumentException.class, () -> {
-            loanOfferFactory.createOffer(request, 0, true, true);
+            loanOfferFactory.createOffer(validRequest, 0, true, true);
         });
     }
 
     // Тестирование с некорректной baseRate
     @Test
     void testCreateOffer_InvalidBaseRate() {
-        // Подготовка данных для теста
-        LoanStatementRequestDto request = LoanStatementRequestDto.builder()
-                .amount(new BigDecimal("100000"))
-                .term(12)
-                .build();
 
         // Мокируем, что prescoring прошёл
-        doNothing().when(prescoringService).validate(request);
+        doNothing().when(prescoringService).validate(validRequest);
 
         // Устанавливаем неправильную baseRate (например, 0)
         loanOfferFactory = new LoanOfferFactory(prescoringService);
 
         // Ожидаем выброс исключения
         assertThrows(IllegalStateException.class, () -> {
-            loanOfferFactory.createOffer(request, 12, true, true);
+            loanOfferFactory.createOffer(validRequest, 12, true, true);
         });
     }
 

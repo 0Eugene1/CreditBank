@@ -1,6 +1,8 @@
 package com.example.calculator.service;
 
-import com.example.calculator.dto.*;
+import com.example.calculator.dto.CreditDto;
+import com.example.calculator.dto.PaymentScheduleElementDto;
+import com.example.calculator.dto.ScoringDataDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +29,6 @@ public class LoanCalcService {
         log.info("Start calculateCredit method");
 
 
-        log.info("Received scoringData: {}", scoringData);
         // Рассчитываем % ставку rate
         double rate = baseRate + scoringService.calculateRate(scoringData);
         log.info("Calculated rate: {}", rate);
@@ -41,25 +42,25 @@ public class LoanCalcService {
 
         //Рассчитываем ежемесячный платеж
         BigDecimal monthlyPayment = calculateMonthlyPayment(amount, monthlyRate, term);
-        log.info("Monthly payment: {}", monthlyPayment);
+
 
         //Рассчитываем полную стоимость кредита PSK
         BigDecimal psk = monthlyPayment.multiply(BigDecimal.valueOf(term)); // сумма всех платежей
-        log.info("PSK - total cost calculated: {}", psk);
+
 
         // График ежемесячных платежей
         List<PaymentScheduleElementDto> paymentSchedule = createPaymentSchedule(amount, monthlyRate, term, monthlyPayment);
-        log.info("Payment schedule created: {}", paymentSchedule);
+
 
         CreditDto creditDto = CreditDto.builder()
-                        .rate(BigDecimal.valueOf(rate))
-                                .amount(amount)
-                                        .monthlyPayment(monthlyPayment)
-                                                .psk(psk)
-                                                        .isInsuranceEnabled(scoringData.getIsInsuranceEnabled())
-                                                                .isSalaryClient(scoringData.getIsSalaryClient())
-                                                                        .paymentSchedule(paymentSchedule)
-                                                                                .build();
+                .rate(BigDecimal.valueOf(rate))
+                .amount(amount)
+                .monthlyPayment(monthlyPayment)
+                .psk(psk)
+                .isInsuranceEnabled(scoringData.getIsInsuranceEnabled())
+                .isSalaryClient(scoringData.getIsSalaryClient())
+                .paymentSchedule(paymentSchedule)
+                .build();
         log.info("Credit details calculated successfully: {}", creditDto);
 
         return creditDto;
@@ -70,13 +71,13 @@ public class LoanCalcService {
         // Рассчитываем ежемесячный платеж
 
         BigDecimal rateFactor = BigDecimal.ONE.add(monthlyRate);
-        log.debug("Rate factor: {}", rateFactor);
+
 
         BigDecimal denominator = rateFactor.pow(term).subtract(BigDecimal.ONE);
-        log.debug("Denominator: {}", denominator);
+
 
         BigDecimal numerator = amount.multiply(monthlyRate).multiply(rateFactor.pow(term));
-        log.debug("Numerator: {}", numerator);
+
         return numerator.divide(denominator, 2, RoundingMode.HALF_UP); //Округление до 2х знаков после запятой
     }
 
@@ -107,13 +108,13 @@ public class LoanCalcService {
 
             //Создаем элемент для графика
             PaymentScheduleElementDto element = PaymentScheduleElementDto.builder()
-                            .number(i)
-                                    .date(LocalDate.now().plusMonths(i))
-                                            .totalPayment(monthlyPayment)
-                                                    .interestPayment(interestPayment)
-                                                            .debtPayment(debtPayment)
-                                                                    .remainingDebt(remainingDebt)
-                                                                            .build();
+                    .number(i)
+                    .date(LocalDate.now().plusMonths(i))
+                    .totalPayment(monthlyPayment)
+                    .interestPayment(interestPayment)
+                    .debtPayment(debtPayment)
+                    .remainingDebt(remainingDebt)
+                    .build();
             schedule.add(element);
         }
         log.debug("Payment schedule created: {}", schedule);

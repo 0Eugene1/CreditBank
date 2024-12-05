@@ -6,37 +6,31 @@ import com.example.calculator.enums.EmploymentStatusEnum;
 import com.example.calculator.enums.GenderEnum;
 import com.example.calculator.enums.MaritalStatusEnum;
 import com.example.calculator.enums.PositionEnum;
-import com.example.calculator.service.PrescoringService;
-import com.example.calculator.service.ScoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
-import org.junit.jupiter.api.Test;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @TestPropertySource(properties = "loan.base-rate=10.0")
 public class ScoringServiceTest {
+
+    @Value("${loan.base-rate}")
+    private double baseRate;
 
     @Mock
     private PrescoringService prescoringServiceMock;
@@ -44,38 +38,63 @@ public class ScoringServiceTest {
     @Autowired
     private ScoringService scoringServiceToTest;
 
+    private ScoringDataDto validData;
+    private EmploymentDto validEmployment;
+    private ScoringDataDto invalidData;
+    private EmploymentDto invalidEmployment;
+
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
+
+        // Инициализация общих данных для тестов
+        validEmployment = EmploymentDto.builder()
+                .workExperienceTotal(20)
+                .workExperienceCurrent(15)
+                .salary(BigDecimal.valueOf(30000))
+                .employerINN("123456")
+                .position(PositionEnum.MIDDLE_MANAGER)
+                .employmentStatus(EmploymentStatusEnum.BUSINESS_OWNER)
+                .build();
+
+        validData = ScoringDataDto.builder()
+                .birthDate(LocalDate.now().minusYears(20))
+                .term(12)
+                .amount(BigDecimal.valueOf(50000))
+                .isInsuranceEnabled(true)
+                .firstName("Oleg")
+                .lastName("Olegov")
+                .middleName("Olegovich")
+                .isSalaryClient(true)
+                .maritalStatus(MaritalStatusEnum.DIVORCED)
+                .gender(GenderEnum.MALE)
+                .employment(validEmployment)  // Используем employment с builder
+                .build();
+
+        invalidEmployment = EmploymentDto.builder()
+                .workExperienceTotal(5)
+                .workExperienceCurrent(2)
+                .salary(BigDecimal.valueOf(30000))
+                .employerINN("123456")
+                .position(PositionEnum.MIDDLE_MANAGER)
+                .employmentStatus(EmploymentStatusEnum.SELF_EMPLOYED)
+                .build();
+
+        invalidData = ScoringDataDto.builder()
+                .birthDate(LocalDate.now().minusYears(15))
+                .amount(BigDecimal.valueOf(50000))
+                .term(12)
+                .gender(GenderEnum.MALE)
+                .maritalStatus(MaritalStatusEnum.SINGLE)
+                .isInsuranceEnabled(true)
+                .isSalaryClient(true)
+                .employment(invalidEmployment)  // Используем employment с builder
+                .build();
     }
 
 
     @Test
     public void testCalculateRate_validData() {
-        // Создание валидных данных
-        ScoringDataDto validData = new ScoringDataDto();
-        validData.setBirthDate(LocalDate.now().minusYears(20));
-        validData.setTerm(12);
-        validData.setAmount(BigDecimal.valueOf(50000));
-        validData.setIsInsuranceEnabled(true);
-        validData.setFirstName("Oleg");
-        validData.setLastName("Olegov");
-        validData.setMiddleName("Olegovich");
-        validData.setIsSalaryClient(true);
-        validData.setMaritalStatus(MaritalStatusEnum.DIVORCED);
-        validData.setGender(GenderEnum.MALE);
-
-        // Инициализация EmploymentDto и установка его в ScoringDataDto
-        EmploymentDto employmentDto = new EmploymentDto();
-        employmentDto.setWorkExperienceTotal(20); // Установи требуемые значения
-        employmentDto.setWorkExperienceCurrent(15);
-        employmentDto.setSalary(BigDecimal.valueOf(30000));
-        employmentDto.setEmployerINN("123456");
-        employmentDto.setPosition(PositionEnum.MIDDLE_MANAGER);
-        employmentDto.setEmploymentStatus(EmploymentStatusEnum.BUSINESS_OWNER);
-
-        validData.setEmployment(employmentDto);
-
         // Мокирование возвращаемого значения для baseRate
         doNothing().when(prescoringServiceMock).validate(validData);
 
@@ -85,24 +104,6 @@ public class ScoringServiceTest {
 
     @Test
     public void testInvalidAge() {
-        ScoringDataDto invalidData = new ScoringDataDto();
-        invalidData.setBirthDate(LocalDate.now().minusYears(15)); // Некорректный возраст
-
-        // Инициализация всех остальных полей, чтобы избежать NullPointerException
-        invalidData.setAmount(BigDecimal.valueOf(50000)); // Пример суммы займа
-        invalidData.setTerm(12); // Пример срока займа
-        invalidData.setGender(GenderEnum.MALE); // Пример пола
-        invalidData.setMaritalStatus(MaritalStatusEnum.SINGLE); // Пример семейного положения
-        invalidData.setIsInsuranceEnabled(true); // Пример, что страховка включена
-        invalidData.setIsSalaryClient(true); // Пример, что это зарплатный клиент
-
-        // Инициализация объекта EmploymentDto
-        EmploymentDto employment = new EmploymentDto();
-        employment.setSalary(BigDecimal.valueOf(30000)); // Примерная зарплата
-        employment.setEmploymentStatus(EmploymentStatusEnum.SELF_EMPLOYED); // Пример статуса занятости
-        employment.setWorkExperienceTotal(5); // Стаж
-        employment.setWorkExperienceCurrent(2); // Стаж на текущем месте
-        invalidData.setEmployment(employment);
 
         // Проверяем, что выбрасывается IllegalArgumentException
         assertThrows(IllegalArgumentException.class, () -> {
@@ -113,29 +114,9 @@ public class ScoringServiceTest {
 
     @Test
     public void testInvalidExperience() {
-        // Создаем данные с некорректным стажем
-        ScoringDataDto invalidData = new ScoringDataDto();
-        invalidData.setBirthDate(LocalDate.now().minusYears(25)); // Корректный возраст
-        invalidData.setTerm(12);
-        invalidData.setAmount(BigDecimal.valueOf(50000));
-        invalidData.setIsInsuranceEnabled(true);
-        invalidData.setFirstName("Ivan");
-        invalidData.setLastName("Ivanov");
-        invalidData.setMiddleName("Ivanovich");
-        invalidData.setIsSalaryClient(true);
-        invalidData.setMaritalStatus(MaritalStatusEnum.MARRIED);
-        invalidData.setGender(GenderEnum.MALE);
-
         // Создаем EmploymentDto с некорректным стажем
-        EmploymentDto employmentDto = new EmploymentDto();
-        employmentDto.setWorkExperienceTotal(1); // Некорректный общий стаж (меньше порогового значения)
-        employmentDto.setWorkExperienceCurrent(0); // Некорректный текущий стаж
-        employmentDto.setSalary(BigDecimal.valueOf(30000));
-        employmentDto.setEmployerINN("123456789");
-        employmentDto.setPosition(PositionEnum.MIDDLE_MANAGER);
-        employmentDto.setEmploymentStatus(EmploymentStatusEnum.SELF_EMPLOYED);
-
-        invalidData.setEmployment(employmentDto);
+        invalidEmployment.setWorkExperienceTotal(1); // Некорректный общий стаж
+        invalidEmployment.setWorkExperienceCurrent(0); // Некорректный текущий стаж
 
         // Проверяем, что выбрасывается исключение IllegalArgumentException
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -148,18 +129,29 @@ public class ScoringServiceTest {
 
     @Test
     public void testCalculateRate_invalidLoanAmount() {
-        ScoringDataDto scoringData = new ScoringDataDto();
-        scoringData.setAmount(BigDecimal.valueOf(250000)); // Неподходящая сумма займа
-
-        EmploymentDto employment = new EmploymentDto();
-        employment.setSalary(BigDecimal.valueOf(10000)); // Зарплата
-        scoringData.setEmployment(employment);
+        ScoringDataDto invalidLoanAmountData = ScoringDataDto.builder()
+                .birthDate(LocalDate.now().minusYears(25))
+                .term(12)
+                .amount(BigDecimal.valueOf(250000))
+                .isInsuranceEnabled(true)
+                .isSalaryClient(false)
+                .maritalStatus(MaritalStatusEnum.SINGLE)
+                .gender(GenderEnum.MALE)
+                .employment(EmploymentDto.builder()
+                        .workExperienceTotal(5)
+                        .workExperienceCurrent(2)
+                        .salary(BigDecimal.valueOf(10000))
+                        .employerINN("123456789")
+                        .position(PositionEnum.MIDDLE_MANAGER)
+                        .employmentStatus(EmploymentStatusEnum.SELF_EMPLOYED)
+                        .build())  // Используем employment с builder
+                .build();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringServiceToTest.calculateRate(scoringData);
+            scoringServiceToTest.calculateRate(invalidLoanAmountData);
         });
 
-        assertEquals("Отказ по стажу: стаж не может быть пустым.", exception.getMessage());
+        assertEquals("Отказ по стажу: недостаточный стаж.", exception.getMessage());
     }
 
 }

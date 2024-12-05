@@ -3,16 +3,14 @@ package com.example.calculator.dto;
 import com.example.calculator.enums.GenderEnum;
 import com.example.calculator.enums.MaritalStatusEnum;
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-@NoArgsConstructor
+@Builder
 public class ScoringDataDto {
 
     @NotNull(message = "Сумма не может быть нулевой")
