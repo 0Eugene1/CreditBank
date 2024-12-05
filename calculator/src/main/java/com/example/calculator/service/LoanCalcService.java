@@ -23,23 +23,22 @@ public class LoanCalcService {
     private final PrescoringService prescoringService;
 
     @Value("${loan.base-rate}")
-    private double baseRate;
+    private BigDecimal baseRate;
 
     public CreditDto calculateCredit(ScoringDataDto scoringData) {
         log.info("Start calculateCredit method");
 
 
         // Рассчитываем % ставку rate
-        double rate = baseRate + scoringService.calculateRate(scoringData);
+        BigDecimal rate = baseRate.add(scoringService.calculateRate(scoringData));
         log.info("Calculated rate: {}", rate);
 
         // Рассчитываем ежемесячный платеж
         BigDecimal amount = scoringData.getAmount(); // Сумма кредита
         int term = scoringData.getTerm(); // Срок кредита
-        BigDecimal monthlyRate = BigDecimal.valueOf(rate)
+        BigDecimal monthlyRate = rate
                 .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP) // Преобразование в месячную % ставку
                 .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
-
         //Рассчитываем ежемесячный платеж
         BigDecimal monthlyPayment = calculateMonthlyPayment(amount, monthlyRate, term);
 
@@ -53,7 +52,7 @@ public class LoanCalcService {
 
 
         CreditDto creditDto = CreditDto.builder()
-                .rate(BigDecimal.valueOf(rate))
+                .rate(rate)
                 .amount(amount)
                 .monthlyPayment(monthlyPayment)
                 .psk(psk)

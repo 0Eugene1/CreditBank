@@ -16,37 +16,26 @@ import java.time.Period;
 public class ScoringRules {
 
     @Value("${loan.base-rate}")
-    private double baseRate;
+    private BigDecimal baseRate;
 
-    public static double applyEmploymentStatus(EmploymentStatusEnum employmentStatus, double baseRate) {
-
+    public static BigDecimal applyEmploymentStatus(EmploymentStatusEnum employmentStatus, BigDecimal baseRate) {
         log.debug("Applying employment status rule.Employment status: {}", employmentStatus);
 
         return switch (employmentStatus) {
-            case UNEMPLOYED -> {
-                throw new IllegalArgumentException("Отказ по причине: безработный.");
-            }
-            case SELF_EMPLOYED -> {
-                yield baseRate + 2;
-            }
-            case BUSINESS_OWNER -> {
-                yield baseRate + 1;
-            }
+            case UNEMPLOYED -> throw new IllegalArgumentException("Отказ по причине: безработный.");
+            case SELF_EMPLOYED -> baseRate.add(BigDecimal.valueOf(2));
+            case BUSINESS_OWNER -> baseRate.add(BigDecimal.valueOf(1));
             default -> baseRate;
         };
     }
 
 
-    public static double applyPositionStatus(PositionEnum position, double baseRate) {
+    public static BigDecimal applyPositionStatus(PositionEnum position, BigDecimal baseRate) {
         log.debug("Applying position status rule. Position: {}", position);
 
         return switch (position) {
-            case MIDDLE_MANAGER -> {
-                yield baseRate - 2;
-            }
-            case TOP_MANAGER -> {
-                yield baseRate - 3;
-            }
+            case MIDDLE_MANAGER -> baseRate.subtract(BigDecimal.valueOf(2));
+            case TOP_MANAGER -> baseRate.subtract(BigDecimal.valueOf(3));
             default -> baseRate;
         };
     }
@@ -63,16 +52,12 @@ public class ScoringRules {
     }
 
 
-    public static double applyMaritalStatus(MaritalStatusEnum maritalStatus, double baseRate) {
+    public static BigDecimal applyMaritalStatus(MaritalStatusEnum maritalStatus, BigDecimal baseRate) {
         log.debug("Applying marital status rule. Marital status: {}", maritalStatus);
 
         return switch (maritalStatus) {
-            case MARRIED -> {
-                yield baseRate - 3;
-            }
-            case DIVORCED -> {
-                yield baseRate + 1;
-            }
+            case MARRIED -> baseRate.subtract(BigDecimal.valueOf(3));
+            case DIVORCED -> baseRate.add(BigDecimal.valueOf(1));
             default -> baseRate;
         };
     }
@@ -90,26 +75,14 @@ public class ScoringRules {
     }
 
 
-    public static double applyGenderRule(GenderEnum gender, LocalDate birthDate, double baseRate) {
+    public static BigDecimal applyGenderRule(GenderEnum gender, LocalDate birthDate, BigDecimal baseRate) {
         int age = Period.between(birthDate, LocalDate.now()).getYears();
         log.debug("Applying gender rule. Gender: {}, Age: {}", gender, age);
 
         return switch (gender) {
-            case FEMALE -> {
-                if (age >= 32 && age <= 60) {
-                    yield baseRate - 3;
-                }
-                yield baseRate;
-            }
-            case MALE -> {
-                if (age >= 30 && age <= 55) {
-                    yield baseRate - 3;
-                }
-                yield baseRate;
-            }
-            case NON_BINARY -> {
-                yield baseRate + 7;
-            }
+            case FEMALE -> (age >= 32 && age <= 60) ? baseRate.subtract(BigDecimal.valueOf(3)) : baseRate;
+            case MALE -> (age >= 30 && age <= 55) ? baseRate.subtract(BigDecimal.valueOf(3)) : baseRate;
+            case NON_BINARY -> baseRate.add(BigDecimal.valueOf(7));
             default -> baseRate;
         };
     }

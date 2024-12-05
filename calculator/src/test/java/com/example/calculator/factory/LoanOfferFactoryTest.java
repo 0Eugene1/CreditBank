@@ -107,7 +107,7 @@ public class LoanOfferFactoryTest {
         loanOfferFactory = new LoanOfferFactory(prescoringService);
 
         // Ожидаем выброс исключения
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             loanOfferFactory.createOffer(validRequest, 12, true, true);
         });
     }

@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 import static com.example.calculator.scoring.ScoringRules.*;
 
 @Slf4j
@@ -15,21 +17,21 @@ public class ScoringService {
 
 
     @Value("${loan.base-rate:10.0}")
-    private double baseRate;
+    private BigDecimal baseRate;
 
     @Operation(summary = "Calculate the loan rate based on scoring data",
             description = "Calculates the modified loan rate based on various conditions like age, experience, loan amount, etc.")
 
-    public double calculateRate(ScoringDataDto data) {
+    public BigDecimal calculateRate(ScoringDataDto data) {
         log.info("Start calculating rate for ScoringData: {}", data);
 
         // Проверка стажа
         ScoringRules.isExperienceValid(data.getEmployment().getWorkExperienceTotal(), data.getEmployment().getWorkExperienceCurrent());
 
-        double modifiedRate = baseRate;  // Используем локальную переменную для расчётов
+        BigDecimal modifiedRate = baseRate;  // Используем локальную переменную для расчётов
 
-        if (modifiedRate < 0) {
-            modifiedRate = 10.0; // Устанавливаем минимальную ставку
+        if (modifiedRate.compareTo(BigDecimal.valueOf(10.0)) < 0) {
+            modifiedRate = BigDecimal.valueOf(10.0);
         }
         //modified rate
 

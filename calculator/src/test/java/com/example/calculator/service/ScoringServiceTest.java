@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doNothing;
 public class ScoringServiceTest {
 
     @Value("${loan.base-rate}")
-    private double baseRate;
+    private BigDecimal baseRate;
 
     @Mock
     private PrescoringService prescoringServiceMock;
@@ -92,25 +92,24 @@ public class ScoringServiceTest {
                 .build();
     }
 
-
     @Test
     public void testCalculateRate_validData() {
         // Мокирование возвращаемого значения для baseRate
         doNothing().when(prescoringServiceMock).validate(validData);
 
-        // Проверка baseRate в Spring контексте
-        assertEquals(10.0, scoringServiceToTest.calculateRate(validData), 0.01);
+        // Проверка значения baseRate через сравнение BigDecimal
+        BigDecimal calculatedRate = scoringServiceToTest.calculateRate(validData);
+        assertEquals(0, calculatedRate.compareTo(baseRate), "Calculated rate should match baseRate");
     }
+
 
     @Test
     public void testInvalidAge() {
-
         // Проверяем, что выбрасывается IllegalArgumentException
         assertThrows(IllegalArgumentException.class, () -> {
             scoringServiceToTest.calculateRate(invalidData);
         });
     }
-
 
     @Test
     public void testInvalidExperience() {
@@ -153,5 +152,4 @@ public class ScoringServiceTest {
 
         assertEquals("Отказ по стажу: недостаточный стаж.", exception.getMessage());
     }
-
 }

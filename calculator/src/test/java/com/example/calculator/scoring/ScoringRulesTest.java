@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ScoringRulesTest {
 
     @Value("${baseRate:10.0}") // Значение по умолчанию
-    private double baseRate;
+    private BigDecimal baseRate;
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +41,7 @@ public class ScoringRulesTest {
 
     @BeforeEach
     public void setup() {
-        baseRate = Double.parseDouble(environment.getProperty("baseRate", "10.0"));
+        baseRate = new BigDecimal(environment.getProperty("baseRate", "10.0"));
     }
 
     @ParameterizedTest
@@ -49,11 +49,11 @@ public class ScoringRulesTest {
             "SELF_EMPLOYED, 12.0",  // Увеличение на 2
             "BUSINESS_OWNER, 11.0", // Увеличение на 1
     })
-    public void testApplyEmploymentStatus(String employmentStatus, double expectedRate) {
+    public void testApplyEmploymentStatus(String employmentStatus, BigDecimal expectedRate) {
         EmploymentStatusEnum status = EmploymentStatusEnum.valueOf(employmentStatus);
 
-        double result = ScoringRules.applyEmploymentStatus(status, 10.0); // Всегда передаем фиксированное значение
-        assertEquals(expectedRate, result, 0.001);
+        BigDecimal result = ScoringRules.applyEmploymentStatus(status, new BigDecimal("10.0")); // Используем фиксированное значение
+        assertEquals(expectedRate, result);
     }
 
 
@@ -62,7 +62,7 @@ public class ScoringRulesTest {
         EmploymentStatusEnum status = EmploymentStatusEnum.UNEMPLOYED;
 
         assertThrows(IllegalArgumentException.class, () -> {
-            ScoringRules.applyEmploymentStatus(status, 10.0);
+            ScoringRules.applyEmploymentStatus(status, new BigDecimal("10.0"));
         });
     }
 
@@ -71,11 +71,11 @@ public class ScoringRulesTest {
             "MIDDLE_MANAGER, 8.0", // Уменьшение на 2
             "TOP_MANAGER, 7.0",    // Уменьшение на 3
     })
-    public void testApplyPositionStatus(String position, double expectedRate) {
+    public void testApplyPositionStatus(String position, BigDecimal expectedRate) {
         PositionEnum positionEnum = PositionEnum.valueOf(position);
 
-        double result = ScoringRules.applyPositionStatus(positionEnum, 10.0); // Фиксированная ставка
-        assertEquals(expectedRate, result, 0.001);
+        BigDecimal result = ScoringRules.applyPositionStatus(positionEnum, new BigDecimal("10.0")); // Фиксированная ставка
+        assertEquals(expectedRate, result);
     }
 
 
@@ -106,12 +106,12 @@ public class ScoringRulesTest {
     @Test
     public void testIsLoanAmountAcceptable_ShouldReturnFalse() {
         EmploymentDto employment = EmploymentDto.builder()
-                .salary(BigDecimal.valueOf(30000))
+                .salary(new BigDecimal("30000"))
                 .build();
 
         ScoringDataDto data = ScoringDataDto.builder()
                 .employment(employment)
-                .amount(BigDecimal.valueOf(1000000))  // Сумма займа слишком большая
+                .amount(new BigDecimal("1000000"))  // Сумма займа слишком большая
                 .build();
 
         assertThrows(IllegalArgumentException.class, () -> {
@@ -124,13 +124,14 @@ public class ScoringRulesTest {
             "MARRIED, 7.0",    // Ожидаем уменьшение на 3
             "DIVORCED, 11.0"   // Ожидаем увеличение на 1
     })
-    public void testApplyMaritalStatus(MaritalStatusEnum maritalStatus, double expectedRate) {
+    public void testApplyMaritalStatus(MaritalStatusEnum maritalStatus, String expectedRate) {
+        BigDecimal expectedRateDecimal = new BigDecimal(expectedRate);
         ScoringDataDto data = ScoringDataDto.builder()
                 .maritalStatus(maritalStatus)
                 .build();
 
-        double rate = ScoringRules.applyMaritalStatus(data.getMaritalStatus(), 10.0); // Используем фиксированную ставку
-        assertEquals(expectedRate, rate);
+        BigDecimal rate = ScoringRules.applyMaritalStatus(data.getMaritalStatus(), new BigDecimal("10.0"));
+        assertEquals(expectedRateDecimal, rate);
     }
 
 
@@ -155,20 +156,21 @@ public class ScoringRulesTest {
         });
     }
 
+
     @ParameterizedTest
     @CsvSource({
             "FEMALE, 5.0, 2.0", // Женщина, возраст между 32 и 60, уменьшение на 3
             "MALE, 5.0, 2.0",   // Мужчина, возраст между 30 и 55, уменьшение на 3
             "NON_BINARY, 5.0, 12.0"  // Небинарный, увеличение на 7
     })
-    public void testApplyGenderRule(GenderEnum gender, double baseRate, double expectedRate) {
+    public void testApplyGenderRule(GenderEnum gender, BigDecimal baseRate, BigDecimal expectedRate) {
         ScoringDataDto data = ScoringDataDto.builder()
                 .gender(gender)
                 .birthDate(LocalDate.of(1985, 1, 1))  // Возраст 39 для женщины и мужчины
                 .build();
 
-        double rate = ScoringRules.applyGenderRule(data.getGender(), data.getBirthDate(), baseRate);
-        assertEquals(expectedRate, rate, 0.001);
+        BigDecimal rate = ScoringRules.applyGenderRule(data.getGender(), data.getBirthDate(), baseRate);
+        assertEquals(expectedRate, rate);
     }
 
 

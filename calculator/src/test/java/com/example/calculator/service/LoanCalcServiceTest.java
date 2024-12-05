@@ -43,7 +43,6 @@ public class LoanCalcServiceTest {
 
     @BeforeEach
     void setUp() {
-
         // Инициализация общего объекта ScoringDataDto для всех тестов
         scoringData = ScoringDataDto.builder()
                 .amount(BigDecimal.valueOf(500000))
@@ -52,28 +51,27 @@ public class LoanCalcServiceTest {
                 .isSalaryClient(false)
                 .build();
 
-        //значение baseRate через ReflectionTestUtils
-        ReflectionTestUtils.setField(loanCalcService, "baseRate", 10.0);
+        // Значение baseRate через ReflectionTestUtils
+        ReflectionTestUtils.setField(loanCalcService, "baseRate", BigDecimal.valueOf(10.0));
     }
 
     @Test
     void calculateCredit_success() {
-
-        when(scoringService.calculateRate(scoringData)).thenReturn(5.0);
+        // Мокаем результат расчета ставки
+        when(scoringService.calculateRate(scoringData)).thenReturn(BigDecimal.valueOf(5.0));
 
         // Ожидаемое значение ежемесячного платежа после расчетов
-        BigDecimal expectedMonthlyPayment = BigDecimal.valueOf(45129.16);  // Ожидаемое значение
+        BigDecimal expectedMonthlyPayment = BigDecimal.valueOf(45129.16);
 
+        // Выполняем расчет кредита
         CreditDto creditDto = loanCalcService.calculateCredit(scoringData);
 
         // Проверка результата
         assertEquals(expectedMonthlyPayment, creditDto.getMonthlyPayment());
     }
 
-
     @Test
     public void calculateCredit_prescoringFails() throws Exception {
-
         // Настройка моков для prescoringService
         doNothing().when(prescoringService).validate(any(ScoringDataDto.class));
 
@@ -88,24 +86,23 @@ public class LoanCalcServiceTest {
                 .andExpect(status().isBadRequest())  // Проверка на статус 400
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
                         containsString("Invalid input data")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
-                        containsString("Invalid input data")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
-                        containsString("Invalid input data")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
     }
 
-
     @Test
     void calculateCredit_largeLoan() {
+        // Устанавливаем большую сумму кредита
         scoringData.setAmount(BigDecimal.valueOf(10000000));
 
-        when(scoringService.calculateRate(scoringData)).thenReturn(8.0);
+        // Мокаем расчет ставки
+        when(scoringService.calculateRate(scoringData)).thenReturn(BigDecimal.valueOf(8.0));
 
+        // Выполняем расчет кредита
         CreditDto creditDto = loanCalcService.calculateCredit(scoringData);
 
+        // Проверки
         assertNotNull(creditDto);
         assertTrue(creditDto.getPsk().compareTo(BigDecimal.ZERO) > 0);
     }
-
 }
+

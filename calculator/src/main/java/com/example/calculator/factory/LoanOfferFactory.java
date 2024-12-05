@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,14 +20,14 @@ import java.util.List;
 public class LoanOfferFactory {
 
     @Value("${loan.base-rate:10.0}")
-    private double baseRate;
+    private BigDecimal baseRate;
     private final PrescoringService prescoringService;
 
     public LoanOfferDto createOffer(LoanStatementRequestDto request, int term, boolean isInsuranceEnabled, boolean isSalaryClient) {
         log.info("Start creating an offer: term={}, isInsuranceEnabled={}, isSalaryClient={}", term, isInsuranceEnabled, isSalaryClient);
 
         // Проверка baseRate
-        if (baseRate <= 0) {
+        if (baseRate.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalStateException("Base rate is not correctly configured.");
         }
 
@@ -36,12 +37,12 @@ public class LoanOfferFactory {
 
 
         // Модифицируем базовую ставку в зависимости от условий
-        double modifiedRate = baseRate;
+        BigDecimal modifiedRate = baseRate;
         if (isInsuranceEnabled) {
-            modifiedRate -= 3;  // Если страховка, то уменьшаем ставку на 3
+            modifiedRate = modifiedRate.subtract(BigDecimal.valueOf(3));  // Если страховка, то уменьшаем ставку на 3
         }
         if (isSalaryClient) {
-            modifiedRate -= 1;  // Если зарплатный клиент, то уменьшаем ставку на 1
+            modifiedRate = modifiedRate.subtract(BigDecimal.valueOf(1));  // Если зарплатный клиент, то уменьшаем ставку на 1
         }
 
 
@@ -60,11 +61,15 @@ public class LoanOfferFactory {
         }
 
         // Ежемесячный платеж
-        double monthlyRate = modifiedRate / 100.0 / 12; // Ежемесячная % ставка. Преобразуем в ~ 0.01 и делим на 12;
+        BigDecimal monthlyRate = modifiedRate.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
+                .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
         BigDecimal monthlyPayment;
         try {
-            monthlyPayment = totalAmount.multiply(BigDecimal.valueOf(monthlyRate))
-                    .divide(BigDecimal.valueOf(1 - Math.pow(1 + monthlyRate, -term)), 2, RoundingMode.HALF_UP);
+            BigDecimal numerator = totalAmount.multiply(monthlyRate);
+            BigDecimal denominator = BigDecimal.ONE.subtract(
+                    BigDecimal.ONE.add(monthlyRate).pow(-term, new MathContext(10))
+            );
+            monthlyPayment = numerator.divide(denominator, 2, RoundingMode.HALF_UP);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException("Error when calculating monthly payment: неверные параметры срока или ставки", e);
         }
@@ -78,7 +83,7 @@ public class LoanOfferFactory {
                 .totalAmount(totalAmount) // Устанавливаем общую сумму
                 .term(term)
                 .monthlyPayment(monthlyPayment)
-                .rate(new BigDecimal(modifiedRate != 0 ? modifiedRate : 0)) // Если ставка равна 0, присваиваем 0
+                .rate(modifiedRate) // Если ставка равна 0, присваиваем 0
                 .isInsuranceEnabled(isInsuranceEnabled) // Устанавливаем наличие страховки
                 .isSalaryClient(isSalaryClient) // Устанавливаем статус зарплатного клиента
                 .build();
