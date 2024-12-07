@@ -30,12 +30,14 @@ public class CalculatorController implements LoanCalcControllerApi {
     private final LoanOfferService loanOfferService;
 
 
+    @Override
     @PostMapping("/offers")
     public ResponseEntity<List<LoanOfferDto>> offers(@Valid @RequestBody LoanStatementRequestDto request) {
         log.debug("A request has been received to calculate possible loan terms: {}", request);
         return ResponseEntity.ok(loanOfferService.calculateLoanOffers(request));
     }
 
+    @Override
     @PostMapping("/calc")
     public ResponseEntity<CreditDto> calculateCredit(@Valid @RequestBody ScoringDataDto data) {
         log.debug("Request for loan calculation received: {}", data);

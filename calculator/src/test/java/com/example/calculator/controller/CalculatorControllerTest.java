@@ -3,7 +3,6 @@ package com.example.calculator.controller;
 import com.example.calculator.dto.CreditDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
 import com.example.calculator.dto.ScoringDataDto;
-import com.example.calculator.enums.GenderEnum;
 import com.example.calculator.service.LoanCalcService;
 import com.example.calculator.service.LoanOfferService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +17,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -39,7 +37,6 @@ public class CalculatorControllerTest {
     private LoanOfferService loanOfferService;
 
     private String jsonRequest;
-    private ScoringDataDto scoringData;
     private CreditDto creditDto;
 
     @BeforeEach
@@ -56,17 +53,6 @@ public class CalculatorControllerTest {
                     "passportNumber": "567890"
                 }
                 """;
-
-        scoringData = ScoringDataDto.builder()
-                .amount(new BigDecimal("100000"))
-                .term(12)
-                .firstName("John")
-                .lastName("Doe")
-                .birthDate(LocalDate.of(1990, 1, 1))
-                .passportSeries("1234")
-                .passportNumber("567890")
-                .gender(GenderEnum.MALE)
-                .build();
 
         creditDto = CreditDto.builder()
                 .monthlyPayment(new BigDecimal("15000"))
@@ -95,7 +81,7 @@ public class CalculatorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"amount\":100000, \"term\":12}"))
                 .andExpect(status().isBadRequest())  // Проверка, что статус 400 Bad Request
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Некорректные входные данные."))  // Проверка, что сообщение ошибки корректное
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Некорректные входные данные: Invalid request"))  // Проверка, что сообщение ошибки корректное
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка, что статус в теле ответа равен 400
     }
 
@@ -133,7 +119,7 @@ public class CalculatorControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())  // Проверяем, что статус 400
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Некорректные входные данные."));  // Проверяем сообщение об ошибке
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Некорректные входные данные: Некорректные входные данные."));  // Проверяем сообщение об ошибке
     }
 
 

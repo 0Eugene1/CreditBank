@@ -33,9 +33,7 @@ public class PrescoringRulesTest {
     @Test
     public void testValidateName_NameWithDigits_ShouldThrowException() {
         String name = "John123"; // Имя с цифрами
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateName(name);
-        });
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validateName(name));
     }
 
 
@@ -52,9 +50,7 @@ public class PrescoringRulesTest {
     @ParameterizedTest
     @ValueSource(strings = {"5000", "9999", "0"})
     public void testValidateCreditAmount_InvalidAmounts_ShouldThrowException(String amount) {
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateCreditAmount(new BigDecimal(amount));
-        });
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validateCreditAmount(new BigDecimal(amount)));
     }
 
 
@@ -88,9 +84,7 @@ public class PrescoringRulesTest {
     @Test
     public void testValidateBirthDate_Underage_ShouldThrowException() {
         LocalDate birthDate = LocalDate.of(2010, 1, 1); // Возраст 14 лет
-        assertThrows(IllegalArgumentException.class, () -> {
-            PrescoringRules.validateBirthDate(birthDate);
-        });
+        assertThrows(IllegalArgumentException.class, () -> PrescoringRules.validateBirthDate(birthDate));
     }
 
 

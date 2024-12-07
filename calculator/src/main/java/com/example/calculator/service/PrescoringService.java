@@ -4,11 +4,9 @@ package com.example.calculator.service;
 import com.example.calculator.dto.LoanStatementRequestDto;
 import com.example.calculator.dto.ScoringDataDto;
 import com.example.calculator.prescoring.PrescoringRules;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Api(tags = "Prescoring Service")
 @Slf4j
 @Service
 public class PrescoringService {

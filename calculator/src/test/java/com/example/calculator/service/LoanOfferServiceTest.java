@@ -123,16 +123,6 @@ public class LoanOfferServiceTest {
     }
 
 
-    // Вспомогательный метод для создания LoanOfferDto
-    private LoanOfferDto createMockOffer(BigDecimal rate, BigDecimal totalAmount) {
-        LoanOfferDto offer = LoanOfferDto.builder()
-                .rate(rate)
-                .totalAmount(totalAmount)
-                .build();
-
-        return offer;
-    }
-
     @Test
     void testCalculateLoanOffers_Success() {
 

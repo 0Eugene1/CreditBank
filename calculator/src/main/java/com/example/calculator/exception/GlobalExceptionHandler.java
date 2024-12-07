@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CalculatorError> handleIllegalArgumentException(IllegalArgumentException e) {
         logMessage("Invalid input detected: " + e.getMessage(), e);
 
-        CalculatorError errorResponse = new CalculatorError("Некорректные входные данные.",
+        CalculatorError errorResponse = new CalculatorError("Некорректные входные данные: " + e.getMessage(),
                 HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CalculatorError> handleNullPointerException(NullPointerException e) {
         logMessage("Null pointer exception: " + e.getMessage(), e);
 
-        CalculatorError errorResponse = new CalculatorError("Произошла внутренняя ошибка",
+        CalculatorError errorResponse = new CalculatorError("Произошла внутренняя ошибка: " + e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CalculatorError> handleGeneralException(Exception e) {
         logMessage("Unexpected exception: " + e.getMessage(), e);
 
-        CalculatorError errorResponse = new CalculatorError("Произошла непредвиденная ошибка. Пожалуйста, повторите попытку позже.",
+        CalculatorError errorResponse = new CalculatorError("Произошла непредвиденная ошибка. Пожалуйста, повторите попытку позже: " + e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         logMessage("Validation failed: " + e.getMessage(), e);
 
 
-        CalculatorError errorResponse = new CalculatorError("Invalid input data", HttpStatus.BAD_REQUEST.value());
+        CalculatorError errorResponse = new CalculatorError("Invalid input data: " + e.getMessage(), HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 

@@ -39,7 +39,6 @@ public class ScoringServiceTest {
     private ScoringService scoringServiceToTest;
 
     private ScoringDataDto validData;
-    private EmploymentDto validEmployment;
     private ScoringDataDto invalidData;
     private EmploymentDto invalidEmployment;
 
@@ -48,7 +47,7 @@ public class ScoringServiceTest {
         MockitoAnnotations.openMocks(this);
 
         // Инициализация общих данных для тестов
-        validEmployment = EmploymentDto.builder()
+        EmploymentDto validEmployment = EmploymentDto.builder()
                 .workExperienceTotal(20)
                 .workExperienceCurrent(15)
                 .salary(BigDecimal.valueOf(30000))
@@ -106,9 +105,7 @@ public class ScoringServiceTest {
     @Test
     public void testInvalidAge() {
         // Проверяем, что выбрасывается IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            scoringServiceToTest.calculateRate(invalidData);
-        });
+        assertThrows(IllegalArgumentException.class, () -> scoringServiceToTest.calculateRate(invalidData));
     }
 
     @Test
@@ -118,9 +115,7 @@ public class ScoringServiceTest {
         invalidEmployment.setWorkExperienceCurrent(0); // Некорректный текущий стаж
 
         // Проверяем, что выбрасывается исключение IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringServiceToTest.calculateRate(invalidData);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> scoringServiceToTest.calculateRate(invalidData));
 
         // Убеждаемся, что текст исключения правильный
         assertEquals("Отказ по стажу: недостаточный стаж.", exception.getMessage());
@@ -146,9 +141,7 @@ public class ScoringServiceTest {
                         .build())  // Используем employment с builder
                 .build();
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringServiceToTest.calculateRate(invalidLoanAmountData);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> scoringServiceToTest.calculateRate(invalidLoanAmountData));
 
         assertEquals("Отказ по стажу: недостаточный стаж.", exception.getMessage());
     }

@@ -61,9 +61,7 @@ public class ScoringRulesTest {
     public void testApplyEmploymentStatus_Unemployed_ShouldThrowException() {
         EmploymentStatusEnum status = EmploymentStatusEnum.UNEMPLOYED;
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            ScoringRules.applyEmploymentStatus(status, new BigDecimal("10.0"));
-        });
+        assertThrows(IllegalArgumentException.class, () -> ScoringRules.applyEmploymentStatus(status, new BigDecimal("10.0")));
     }
 
     @ParameterizedTest
@@ -99,7 +97,9 @@ public class ScoringRulesTest {
                         .contentType(MediaType.APPLICATION_JSON)  // Указываем тип контента
                         .content(jsonRequest))  // Используем JSON строку напрямую
                 .andExpect(status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Произошла внутренняя ошибка"));  // Проверка ошибки
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Произошла внутренняя ошибка:" +
+                        " Cannot invoke \"com.example.calculator.dto.EmploymentDto.getWorkExperienceTotal()\"" +
+                        " because the return value of \"com.example.calculator.dto.ScoringDataDto.getEmployment()\" is null"));  // Проверка ошибки
     }
 
 
@@ -114,9 +114,7 @@ public class ScoringRulesTest {
                 .amount(new BigDecimal("1000000"))  // Сумма займа слишком большая
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            ScoringRules.isLoanAmountAcceptable(data);
-        });
+        assertThrows(IllegalArgumentException.class, () -> ScoringRules.isLoanAmountAcceptable(data));
     }
 
     @ParameterizedTest
@@ -151,9 +149,7 @@ public class ScoringRulesTest {
                 .birthDate(LocalDate.of(2020, 1, 1))
                 .build();
 
-        assertThrows(NullPointerException.class, () -> {
-            ScoringRules.isLoanAmountAcceptable(data);
-        });
+        assertThrows(NullPointerException.class, () -> ScoringRules.isLoanAmountAcceptable(data));
     }
 
 

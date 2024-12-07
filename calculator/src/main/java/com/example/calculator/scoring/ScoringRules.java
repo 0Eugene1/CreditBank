@@ -25,7 +25,6 @@ public class ScoringRules {
             case UNEMPLOYED -> throw new IllegalArgumentException("Отказ по причине: безработный.");
             case SELF_EMPLOYED -> baseRate.add(BigDecimal.valueOf(2));
             case BUSINESS_OWNER -> baseRate.add(BigDecimal.valueOf(1));
-            default -> baseRate;
         };
     }
 
@@ -36,7 +35,6 @@ public class ScoringRules {
         return switch (position) {
             case MIDDLE_MANAGER -> baseRate.subtract(BigDecimal.valueOf(2));
             case TOP_MANAGER -> baseRate.subtract(BigDecimal.valueOf(3));
-            default -> baseRate;
         };
     }
 
@@ -83,17 +81,12 @@ public class ScoringRules {
             case FEMALE -> (age >= 32 && age <= 60) ? baseRate.subtract(BigDecimal.valueOf(3)) : baseRate;
             case MALE -> (age >= 30 && age <= 55) ? baseRate.subtract(BigDecimal.valueOf(3)) : baseRate;
             case NON_BINARY -> baseRate.add(BigDecimal.valueOf(7));
-            default -> baseRate;
         };
     }
 
     public static boolean isExperienceValid(Integer workExperienceTotal, Integer workExperienceCurrent) {
-
-        // Проверка по условиям
-        if (workExperienceTotal >= 18 && workExperienceCurrent >= 3) {
-            return true;
-        } else {
-            throw new IllegalArgumentException("Отказ по стажу: недостаточный стаж.");
-        }
+        return workExperienceTotal >= 18 && workExperienceCurrent >= 3;
     }
+
+
 }

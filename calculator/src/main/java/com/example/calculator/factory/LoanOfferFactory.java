@@ -3,6 +3,7 @@ package com.example.calculator.factory;
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
 import com.example.calculator.service.PrescoringService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ public class LoanOfferFactory {
 
     @Value("${loan.base-rate:10.0}")
     private BigDecimal baseRate;
+    @Getter
     private final PrescoringService prescoringService;
 
     public LoanOfferDto createOffer(LoanStatementRequestDto request, int term, boolean isInsuranceEnabled, boolean isSalaryClient) {
@@ -48,7 +50,7 @@ public class LoanOfferFactory {
 
         // Рассчитываем общую сумму кредита с учетом страховки
         BigDecimal totalAmount = request.getAmount();
-        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount cannot be null or non-positive");
         }
         if (isInsuranceEnabled) {
@@ -56,23 +58,7 @@ public class LoanOfferFactory {
         }
 
         // Проверка term
-        if (term <= 0) {
-            throw new IllegalArgumentException("Term cannot be zero or negative.");
-        }
-
-        // Ежемесячный платеж
-        BigDecimal monthlyRate = modifiedRate.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
-                .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
-        BigDecimal monthlyPayment;
-        try {
-            BigDecimal numerator = totalAmount.multiply(monthlyRate);
-            BigDecimal denominator = BigDecimal.ONE.subtract(
-                    BigDecimal.ONE.add(monthlyRate).pow(-term, new MathContext(10))
-            );
-            monthlyPayment = numerator.divide(denominator, 2, RoundingMode.HALF_UP);
-        } catch (ArithmeticException e) {
-            throw new IllegalArgumentException("Error when calculating monthly payment: неверные параметры срока или ставки", e);
-        }
+        BigDecimal monthlyPayment = getBigDecimal(term, modifiedRate, totalAmount);
         log.debug("Monthly payment: {}", monthlyPayment);
 
 
@@ -93,6 +79,31 @@ public class LoanOfferFactory {
             log.debug("Создано некорректное предложение: {}", offer);
         }
         return offer;
+    }
+
+    private static BigDecimal getBigDecimal(int term, BigDecimal modifiedRate, BigDecimal totalAmount) {
+        if (term <= 0) {
+            throw new IllegalArgumentException("Term cannot be zero or negative.");
+        }
+
+        // Ежемесячный платеж
+        BigDecimal monthlyRate = modifiedRate.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
+                .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+        return getDecimal(term, totalAmount, monthlyRate);
+    }
+
+    private static BigDecimal getDecimal(int term, BigDecimal totalAmount, BigDecimal monthlyRate) {
+        BigDecimal monthlyPayment;
+        try {
+            BigDecimal numerator = totalAmount.multiply(monthlyRate);
+            BigDecimal denominator = BigDecimal.ONE.subtract(
+                    BigDecimal.ONE.add(monthlyRate).pow(-term, new MathContext(10))
+            );
+            monthlyPayment = numerator.divide(denominator, 2, RoundingMode.HALF_UP);
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException("Error when calculating monthly payment: неверные параметры срока или ставки", e);
+        }
+        return monthlyPayment;
     }
 
     public List<LoanOfferDto> createOffers(LoanStatementRequestDto request, int term) {

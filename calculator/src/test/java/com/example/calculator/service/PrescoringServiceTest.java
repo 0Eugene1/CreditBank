@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,9 +23,6 @@ public class PrescoringServiceTest {
 
     @InjectMocks
     private PrescoringService prescoringService;
-
-    @Mock
-    private PrescoringRules prescoringRulesMock;
 
     private LoanStatementRequestDto validRequest;
     private LoanStatementRequestDto invalidRequest;

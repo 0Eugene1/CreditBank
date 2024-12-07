@@ -77,9 +77,7 @@ public class LoanOfferFactoryTest {
         doNothing().when(prescoringService).validate(validRequest);
 
         // Ожидаем выброс исключения
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanOfferFactory.createOffer(validRequest, 12, true, true);
-        });
+        assertThrows(IllegalArgumentException.class, () -> loanOfferFactory.createOffer(validRequest, 12, true, true));
     }
 
     // Тестирование с неверным значением term
@@ -91,9 +89,7 @@ public class LoanOfferFactoryTest {
         doNothing().when(prescoringService).validate(validRequest);
 
         // Ожидаем выброс исключения
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanOfferFactory.createOffer(validRequest, 0, true, true);
-        });
+        assertThrows(IllegalArgumentException.class, () -> loanOfferFactory.createOffer(validRequest, 0, true, true));
     }
 
     // Тестирование с некорректной baseRate
@@ -107,9 +103,7 @@ public class LoanOfferFactoryTest {
         loanOfferFactory = new LoanOfferFactory(prescoringService);
 
         // Ожидаем выброс исключения
-        assertThrows(NullPointerException.class, () -> {
-            loanOfferFactory.createOffer(validRequest, 12, true, true);
-        });
+        assertThrows(NullPointerException.class, () -> loanOfferFactory.createOffer(validRequest, 12, true, true));
     }
 
 

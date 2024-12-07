@@ -26,8 +26,9 @@ public class ScoringService {
         log.info("Start calculating rate for ScoringData: {}", data);
 
         // Проверка стажа
-        ScoringRules.isExperienceValid(data.getEmployment().getWorkExperienceTotal(), data.getEmployment().getWorkExperienceCurrent());
-
+        if (!ScoringRules.isExperienceValid(data.getEmployment().getWorkExperienceTotal(), data.getEmployment().getWorkExperienceCurrent())) {
+            throw new IllegalArgumentException("Отказ по стажу: недостаточный стаж.");
+        }
         BigDecimal modifiedRate = baseRate;  // Используем локальную переменную для расчётов
 
         if (modifiedRate.compareTo(BigDecimal.valueOf(10.0)) < 0) {

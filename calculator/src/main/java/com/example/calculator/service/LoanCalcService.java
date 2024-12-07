@@ -20,7 +20,6 @@ import java.util.List;
 public class LoanCalcService {
 
     private final ScoringService scoringService;
-    private final PrescoringService prescoringService;
 
     @Value("${loan.base-rate}")
     private BigDecimal baseRate;
