@@ -5,14 +5,18 @@ import com.example.deal.enums.MaritalStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ScoringDataDto {
 
     @NotNull(message = "Сумма не может быть нулевой")

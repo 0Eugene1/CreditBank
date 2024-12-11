@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)  // Игнорирует неизвестные поля
 public class CreditDto {
 
