@@ -9,6 +9,8 @@ import com.example.deal.service.LoanOfferService;
 import com.example.deal.service.SelectOffersService;
 import com.example.deal.swagger.DealControllerApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,8 @@ public class DealController implements DealControllerApi {
     private final SelectOffersService selectOffersService;
     private final FinishRegRequestService finishRegRequestService;
 
+
+    @Tag(name = "Calculate Api", description = "Api рассчёта возможных условий кредита")
     @PostMapping("/statement")
     public ResponseEntity<List<LoanOfferDto>> calculateLoanOffers(@Valid @RequestBody LoanStatementRequestDto request) {
         log.info("Received loan statement request: {}", request);
@@ -37,6 +41,7 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok(loanOffers);
     }
 
+    @Tag(name = "Offer Api", description = "Api выбора одного из предложений кредита")
     @PostMapping("/offer/select")
     public ResponseEntity<Void> selectLoanOffer(@Valid @RequestBody LoanOfferDto offer) {
         log.info("Received loan offer selection request: {}", offer);
@@ -45,6 +50,7 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok().build();
     }
 
+    @Tag(name = "Finish Api", description = "Api завершения регистрации и подсчёт кредита")
     @PostMapping("/calculate/{statementId}")
     public ResponseEntity<Void> finishRegistration(@PathVariable String statementId, @Valid
                                                    @RequestBody FinishRegistrationRequestDto request)   {

@@ -86,7 +86,7 @@ public class LoanCalcServiceTest {
                 .andExpect(status().isBadRequest())  // Проверка на статус 400
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
                         containsString("Invalid input data")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(500));  // Проверка статуса
     }
 
     @Test

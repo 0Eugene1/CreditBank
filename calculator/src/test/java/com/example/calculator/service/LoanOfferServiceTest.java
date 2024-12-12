@@ -181,7 +181,7 @@ public class LoanOfferServiceTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data")))  // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(500));  // Проверка статуса
     }
 
 

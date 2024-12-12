@@ -1,4 +1,4 @@
-package com.example.deal.config;
+package com.example.calculator.config;
 
 import org.springdoc.core.annotations.RouterOperation;
 import org.springframework.context.annotation.Bean;
@@ -12,24 +12,18 @@ import org.springdoc.core.models.GroupedOpenApi;
 public class OpenApiConfig implements WebMvcConfigurer {
 
     @Bean
-    public GroupedOpenApi calculateApi() {
+    public GroupedOpenApi offersApi() {
         return GroupedOpenApi.builder()
-                .group("Calculate API")
-                .pathsToMatch("/deal/statement")
+                .group("Offers API")
+                .pathsToMatch("/calculator/offers")
                 .build();
     }
+
     @Bean
-    public GroupedOpenApi offerApi() {
+    public GroupedOpenApi calcApi() {
         return GroupedOpenApi.builder()
-                .group("Offer API")
-                .pathsToMatch("/deal/offer/select")
+                .group("Calculation API")
+                .pathsToMatch("/calculator/calc")
                 .build();
     }
-        @Bean
-        public GroupedOpenApi finishApi() {
-            return GroupedOpenApi.builder()
-                    .group("FinishReg API")
-                    .pathsToMatch("/deal/calculate/**")
-                    .build();
-        }
-    }
+}
