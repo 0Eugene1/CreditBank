@@ -28,8 +28,7 @@ public interface DealControllerApi {
     @Operation(summary = "Select a loan offer",
             description = "Allows you to select one of the proposed loan offers.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Loan offer selected successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))),
+            @ApiResponse(responseCode = "200", description = "Loan offer selected successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid loan offer",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
@@ -38,8 +37,7 @@ public interface DealControllerApi {
     @Operation(summary = "Complete registration",
             description = "Completes the registration process by application ID.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Registration completed successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))),
+            @ApiResponse(responseCode = "200", description = "Registration completed successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid registration data",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
