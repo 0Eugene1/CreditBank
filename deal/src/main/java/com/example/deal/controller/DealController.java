@@ -32,7 +32,6 @@ public class DealController implements DealControllerApi {
     private final FinishRegRequestService finishRegRequestService;
 
 
-    @Tag(name = "Calculate Api", description = "Api рассчёта возможных условий кредита")
     @PostMapping("/statement")
     public ResponseEntity<List<LoanOfferDto>> calculateLoanOffers(@Valid @RequestBody LoanStatementRequestDto request) {
         log.info("Received loan statement request: {}", request);
@@ -41,7 +40,6 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok(loanOffers);
     }
 
-    @Tag(name = "offerApi", description = "Api выбора одного из предложений кредита")
     @PostMapping("/offer/select")
     public ResponseEntity<Void> selectLoanOffer(@Valid @RequestBody LoanOfferDto offer) {
         log.info("Received loan offer selection request: {}", offer);
@@ -50,7 +48,6 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok().build();
     }
 
-    @Tag(name = "Finish Api", description = "Api завершения регистрации и подсчёт кредита")
     @PostMapping("/calculate/{statementId}")
     public ResponseEntity<Void> finishRegistration(@PathVariable String statementId, @Valid
                                                    @RequestBody FinishRegistrationRequestDto request)   {
