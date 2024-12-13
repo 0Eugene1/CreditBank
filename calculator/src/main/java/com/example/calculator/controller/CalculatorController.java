@@ -31,7 +31,6 @@ public class CalculatorController implements LoanCalcControllerApi {
     private final LoanOfferService loanOfferService;
 
 
-    @Tag(name = "Offers Api", description = "Расчёт возможных условий кредита")
     @Override
     @PostMapping("/offers")
     public ResponseEntity<List<LoanOfferDto>> offers(@Valid @RequestBody LoanStatementRequestDto request) {
@@ -39,7 +38,6 @@ public class CalculatorController implements LoanCalcControllerApi {
         return ResponseEntity.ok(loanOfferService.calculateLoanOffers(request));
     }
 
-    @Tag(name = "Calculator Api", description = "Валидация присланных данных")
     @Override
     @PostMapping("/calc")
     public ResponseEntity<CreditDto> calculateCredit(@Valid @RequestBody ScoringDataDto data) {

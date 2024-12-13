@@ -3,6 +3,7 @@ package com.example.deal.exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,12 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     // Обработка StatementNotFoundException
     @ExceptionHandler(StatementNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleStatementNotFoundException(StatementNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        log.error("Statement not found: {}", ex.getMessage()); // Логирование
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -29,6 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", "Произошла ошибка: " + ex.getMessage());
+        log.error("Generic exception: {}", ex.getMessage(), ex); // Логирование
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
@@ -47,13 +51,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
+        log.error("Runtime exception: {}", ex.getMessage(), ex); // Логирование
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     @ExceptionHandler(JsonProcessingException.class)
-    public ResponseEntity<CalculatorError> handleJsonProcessingException(JsonProcessingException e) {
-        CalculatorError errorResponse = new CalculatorError("Ошибка обработки JSON: " + e.getMessage(),
-                HttpStatus.BAD_REQUEST.value());
+    public ResponseEntity<ErrorResponse> handleJsonProcessingException(JsonProcessingException e) {
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка обработки JSON", e.getMessage());
+        log.error("JSON processing error: {}", e.getMessage(), e); // Логирование
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -68,9 +73,5 @@ public class GlobalExceptionHandler {
             this.code = code;
             this.message = message;
         }
-
     }
 }
-
-
-

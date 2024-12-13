@@ -1,5 +1,7 @@
 package com.example.deal.config;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,28 +10,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springdoc.core.models.GroupedOpenApi;
 
 @Configuration
-@EnableWebMvc
-public class OpenApiConfig implements WebMvcConfigurer {
+public class OpenApiConfig {
 
     @Bean
-    public GroupedOpenApi calculateApi() {
-        return GroupedOpenApi.builder()
-                .group("Calculate API")
-                .pathsToMatch("/deal/statement")
-                .build();
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info().title("Deal API")
+                        .description("API для работы с заявками и предложениями по кредиту")
+                        .version("1.0"));
     }
-    @Bean
-    public GroupedOpenApi offerApi() {
-        return GroupedOpenApi.builder()
-                .group("Offer API")
-                .pathsToMatch("/deal/offer/select")
-                .build();
-    }
-        @Bean
-        public GroupedOpenApi finishApi() {
-            return GroupedOpenApi.builder()
-                    .group("FinishReg API")
-                    .pathsToMatch("/deal/calculate/**")
-                    .build();
-        }
-    }
+}

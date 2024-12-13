@@ -2,6 +2,7 @@ package com.example.deal.entity;
 
 import com.example.deal.enums.ApplicationStatus;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -13,11 +14,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor // Добавляет конструктор без параметров
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Statement {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,11 +25,11 @@ public class Statement {
     private UUID statementId;
 
     @ManyToOne
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_id", nullable = false) //
     private Client client;
 
     @ManyToOne
-    @JoinColumn(name = "credit_id")
+    @JoinColumn(name = "credit_id", nullable = false) //
     private Credit credit;
 
     @Enumerated(EnumType.STRING)
@@ -37,9 +37,9 @@ public class Statement {
 
     private LocalDateTime creationDate;
 
-    @JdbcTypeCode(SqlTypes.JSON)  // Указываем, что поле имеет тип jsonb
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    @NotEmpty
+    @NotNull(message = "Applied Offer не может быть пустым")
     private String appliedOffer;
 
     private LocalDateTime signDate;
@@ -47,8 +47,7 @@ public class Statement {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    @NotEmpty
+    @NotNull(message = "История статусов не может быть пустой")
     private String statusHistory;
-
 
 }

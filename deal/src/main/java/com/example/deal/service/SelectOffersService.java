@@ -10,8 +10,10 @@ import com.example.deal.repository.StatementRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -68,38 +70,33 @@ public class SelectOffersService {
                 .build();
     }
 
-    // Метод для преобразования истории статусов в JSON
-    private String convertStatusHistoryToJson(List<StatementStatusHistoryDto> statusHistory) {
-        // Преобразуем историю в JSON чтобы сохранить объект LoanOfferDto в поле appliedOffer
+    private String convertObjectToJson(Object object) {
         try {
-            return objectMapper.writeValueAsString(statusHistory);
+            return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            log.error("Error serializing status history: {}", statusHistory, e);
-            throw new RuntimeException("Ошибка при сериализации истории статусов", e);
+            log.error("Failed to serialize object: {}", object, e);
+            throw new SerializationException("Ошибка при сериализации объекта", e);
         }
     }
 
-    // Метод для преобразования LoanOfferDto в JSON
-    private String convertLoanOfferToJson(LoanOfferDto loanOfferDto) {
-        // Преобразуем предложение в JSON
-        try {
-            return objectMapper.writeValueAsString(loanOfferDto);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize object: {}", loanOfferDto, e);
-            throw new RuntimeException("Ошибка при сериализации кредитного предложения", e);
-        }
+    // Преобразование истории статусов в JSON
+    private String convertStatusHistoryToJson(List<StatementStatusHistoryDto> historyList) {
+        return convertObjectToJson(historyList);
     }
 
-    // Метод для получения истории статусов из строки JSON
+    // Преобразование предложения в JSON
+    private String convertLoanOfferToJson(LoanOfferDto offer) {
+        return convertObjectToJson(offer);
+    }
+
     private List<StatementStatusHistoryDto> getStatusHistory(String json) {
-        // Преобразуем строку JSON в список объектов StatementStatusHistoryDto
         try {
-            return objectMapper.readValue(json, new TypeReference<>(){});
+            CollectionType collectionType = objectMapper.getTypeFactory().constructCollectionType(List.class, StatementStatusHistoryDto.class);
+            return objectMapper.readValue(json, collectionType);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize status history JSON: {}", json, e);
             throw new RuntimeException("Ошибка при десериализации истории статусов", e);
         }
     }
-
 }
 

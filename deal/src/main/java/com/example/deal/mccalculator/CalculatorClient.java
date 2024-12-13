@@ -20,6 +20,7 @@ import java.util.List;
 public class CalculatorClient {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${calculator.base-offers-url}")
     private String calculatorBaseOffersUrl;
@@ -27,68 +28,48 @@ public class CalculatorClient {
     @Value("${calculator.base-calc-url}")
     private String calculatorBaseCalcUrl;
 
-    // Конструктор для настройки RestTemplate через RestTemplateBuilder
-    public CalculatorClient(RestTemplateBuilder restTemplateBuilder) {
+    public CalculatorClient(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofSeconds(5)) // Устанавливаем таймаут на соединение
-                .setReadTimeout(Duration.ofSeconds(10)) // Таймаут на чтение данных
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(10))
                 .build();
+        this.objectMapper = objectMapper;
     }
 
-//    // Метод для получения предложения по кредитам
-//    public List<LoanOfferDto> getLoanOffers(LoanStatementRequestDto request) {
-//        log.info("Sending loan calculation request to calculator: {}", request);
-//
-//        log.debug("Request body: {}", request);
-//        ResponseEntity<List<LoanOfferDto>> response = restTemplate.exchange(
-//                calculatorBaseOffersUrl,
-//                HttpMethod.POST,
-//                new HttpEntity<>(request),
-//                new ParameterizedTypeReference<>() {}
-//        );
-//        log.debug("Response body: {}", response.getBody());
-//
-//        validateResponseStatus(response.getStatusCode());
-//        log.info("Received {} loan offers from calculator.", response.getBody().size());
-//        return response.getBody();
-//    }
+    public List<LoanOfferDto> getLoanOffers(LoanStatementRequestDto request) {
+        log.info("Sending loan calculation request to calculator: {}", request);
 
-//    private void validateResponseStatus(HttpStatus status) {
-//        if (!status.is2xxSuccessful()) {
-//            throw new RestClientException("Unexpected response status: " + status);
-//        }
-//    }
-public List<LoanOfferDto> getLoanOffers(LoanStatementRequestDto request) {
-    log.info("Sending loan calculation request to calculator: {}", request);
+        try {
+            log.debug("Request body: {}", objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize request body for logging", e);
+            throw new RestClientException("Error serializing request body", e);
+        }
 
-    // Логируем отправляемый запрос
-    try {
-        log.debug("Request body: {}", new ObjectMapper().writeValueAsString(request));
-    } catch (JsonProcessingException e) {
-        log.error("Failed to serialize request body for logging", e);
+        ResponseEntity<List<LoanOfferDto>> response;
+        try {
+            response = restTemplate.exchange(
+                    calculatorBaseOffersUrl,
+                    HttpMethod.POST,
+                    new HttpEntity<>(request),
+                    new ParameterizedTypeReference<List<LoanOfferDto>>() {}
+            );
+        } catch (RestClientException e) {
+            log.error("Error calling loan calculator service", e);
+            throw new RestClientException("Error calling loan calculator service", e);
+        }
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            logErrorResponse(response);
+            throw new RestClientException("Unexpected response status: " + response.getStatusCode());
+        }
+
+        log.info("Received {} loan offers from calculator.", response.getBody().size());
+        return response.getBody();
     }
 
-    ResponseEntity<List<LoanOfferDto>> response = restTemplate.exchange(
-            calculatorBaseOffersUrl,
-            HttpMethod.POST,
-            new HttpEntity<>(request),
-            new ParameterizedTypeReference<List<LoanOfferDto>>() {}
-    );
-    log.debug("Response body: {}", response.getBody());
-
-    if (!response.getStatusCode().is2xxSuccessful()) {
-        throw new RestClientException("Unexpected response status: " + response.getStatusCode());
-    }
-
-    log.info("Received {} loan offers from calculator.", response.getBody().size());
-
-    return response.getBody();
-    }
-
-    // Метод для отправки данных скоринга
     public CreditDto sendScoringData(ScoringDataDto scoringDataDto) {
         log.info("Sending scoring data to calculator service: {}", scoringDataDto);
-
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -102,19 +83,24 @@ public List<LoanOfferDto> getLoanOffers(LoanStatementRequestDto request) {
                 CreditDto.class
         );
 
-
-        validateResponseStatus(response.getStatusCode());
-        log.info("Received credit data from calculator service: {}", response.getBody());
+        handleScoringDataResponse(response);
         return response.getBody();
     }
 
-    private void validateResponseStatus(HttpStatusCode statusCode) {
-        // Преобразуем HttpStatusCode в HttpStatus
-        HttpStatus status = HttpStatus.resolve(statusCode.value());
-
-        if (status == null || !status.is2xxSuccessful()) {
-            log.error("Calculator service returned error status: {}", status);
-            throw new IllegalStateException("Error response from calculator service: " + status);
+    private void handleScoringDataResponse(ResponseEntity<CreditDto> response) {
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("Scoring service returned error status: {}", response.getStatusCode());
+            throw new RestClientException("Error response from scoring service: " + response.getStatusCode());
         }
+        CreditDto body = response.getBody();
+        if (body == null) {
+            log.error("Scoring service returned empty body");
+            throw new RestClientException("Empty body from scoring service");
+        }
+        log.info("Received credit data from calculator service: {}", body);
+    }
+
+    private void logErrorResponse(ResponseEntity<?> response) {
+        log.error("Received error response: Status: {}, Body: {}", response.getStatusCode(), response.getBody());
     }
 }

@@ -2,6 +2,7 @@ package com.example.deal.service;
 
 import com.example.deal.dto.CreditDto;
 import com.example.deal.dto.FinishRegistrationRequestDto;
+import com.example.deal.dto.PaymentScheduleElementDto;
 import com.example.deal.dto.ScoringDataDto;
 import com.example.deal.entity.Credit;
 import com.example.deal.entity.Statement;
@@ -12,12 +13,14 @@ import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -63,6 +66,12 @@ public class FinishRegRequestService {
                                Statement statement) {
         log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
 
+        // В случае, если паспорт не найден
+        if (statement.getClient() != null && statement.getClient().getPassport() == null) {
+            throw new IllegalArgumentException("Passport data is missing for client: " + statement.getClient().getFirstName() + " " + statement.getClient().getLastName());
+        }
+
+
         ScoringDataDto scoringData =  ScoringDataDto.builder()
                 // Данные из Statement
                 .amount(statement.getCredit().getAmount()) // Сумма кредита
@@ -84,7 +93,7 @@ public class FinishRegRequestService {
                 .employment(registrationRequest.getEmployment()) // Информация о занятости
                 .maritalStatus(registrationRequest.getMaritalStatus()) // Семейное положение
                 .dependentAmount(registrationRequest.getDependentAmount()) // Количество иждивенцев
-                .passportIssueBranch(registrationRequest.getPassportIssueBrach()) // Отделение выдачи паспорта
+                .passportIssueBranch(registrationRequest.getPassportIssueBranch()) // Отделение выдачи паспорта
                 .passportIssueDate(registrationRequest.getPassportIssueDate()) // Дата выдачи паспорта
                 .build();
         log.debug("Generated ScoringDataDto: {}", scoringData);
@@ -102,13 +111,17 @@ public class FinishRegRequestService {
         credit.setRate(creditDto.getRate());
         credit.setInsuranceEnabled(creditDto.isInsuranceEnabled());
         credit.setSalaryClient(creditDto.isSalaryClient());
-//        credit.setPaymentSchedule(creditDto.getPaymentSchedule().toString());
+        // Десериализация paymentSchedule
         try {
-            String paymentScheduleJson = objectMapper.writeValueAsString(creditDto.getPaymentSchedule());
-            credit.setPaymentSchedule(paymentScheduleJson);
+            List<PaymentScheduleElementDto> paymentSchedule = objectMapper.readValue(
+                    objectMapper.writeValueAsString(creditDto.getPaymentSchedule()),
+                    new TypeReference<List<PaymentScheduleElementDto>>() {}
+            );
+            credit.setPaymentSchedule(paymentSchedule);
         } catch (Exception e) {
             throw new RuntimeException("Ошибка сериализации: " + e.getMessage(), e);
         }
+
         credit.setMonthlyPayment(creditDto.getMonthlyPayment());
         credit.setTerm(creditDto.getTerm());
         credit.setCreditStatus(CreditStatus.CALCULATED);

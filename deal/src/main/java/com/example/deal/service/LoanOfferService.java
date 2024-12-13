@@ -69,8 +69,7 @@ public class LoanOfferService {
         client.setMiddleName(request.getMiddleName());
         client.setEmail(request.getEmail());
         client.setBirthDate(request.getBirthDate());
-        //Объединение серии и номера паспорта
-//        client.setPassportId(request.getPassportSeries() + request.getPassportNumber());
+
 
         log.info("Saving new client : {}", client);
         return clientRepository.save(client);
@@ -84,7 +83,14 @@ public class LoanOfferService {
         credit.setTerm(request.getTerm());
         credit.setCreditStatus(CreditStatus.CALCULATED);
 
-        Credit saveCredit = creditRepository.save(credit);
+        Credit savedCredit;
+        try {
+            savedCredit = creditRepository.save(credit);
+        } catch (Exception e) {
+            log.error("Error saving credit: {}", e.getMessage());
+            throw new RuntimeException("Failed to save credit", e);
+        }
+
 
         //Создаётся Statement со связью на только что созданный Client и сохраняется в БД.
         Statement statement = Statement.builder()
@@ -96,7 +102,14 @@ public class LoanOfferService {
 
 
         log.info("Saving new statement: {}", statement);
-        return statementRepository.save(statement);
+        Statement savedStatement;
+        try {
+            savedStatement = statementRepository.save(statement);
+        } catch (Exception e) {
+            log.error("Error saving statement: {}", e.getMessage());
+            throw new RuntimeException("Failed to save statement", e);
+        }
 
+        return savedStatement;
     }
 }
