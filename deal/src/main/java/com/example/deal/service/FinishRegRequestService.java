@@ -2,6 +2,7 @@ package com.example.deal.service;
 
 import com.example.deal.dto.CreditDto;
 import com.example.deal.dto.FinishRegistrationRequestDto;
+import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.PaymentScheduleElementDto;
 import com.example.deal.dto.ScoringDataDto;
 import com.example.deal.entity.Credit;
@@ -66,9 +67,8 @@ public class FinishRegRequestService {
                                Statement statement) {
         log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
 
-        // В случае, если паспорт не найден
         if (statement.getClient() != null && statement.getClient().getPassport() == null) {
-            throw new IllegalArgumentException("Passport data is missing for client: " + statement.getClient().getFirstName() + " " + statement.getClient().getLastName());
+            log.error("Passport data missing for client: {} {}", statement.getClient().getFirstName(), statement.getClient().getLastName());
         }
 
 
