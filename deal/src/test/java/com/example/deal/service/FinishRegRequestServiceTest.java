@@ -60,7 +60,7 @@ class FinishRegRequestServiceTest {
 
         EmploymentDto employmentDto = EmploymentDto.builder()
                 .employmentStatus(EmploymentStatus.EMPLOYED)
-                .employerINN("1234567890")
+                .employerInn("1234567890")
                 .salary(BigDecimal.valueOf(50000))
                 .position(EmploymentPosition.WORKER)
                 .workExperienceTotal(5)
@@ -73,7 +73,7 @@ class FinishRegRequestServiceTest {
                 .employment(employmentDto)
                 .maritalStatus(MaritalStatus.MARRIED)
                 .dependentAmount(0)
-                .passportIssueBrach("Branch A")
+                .passportIssueBranch("Branch A")
                 .passportIssueDate(null)
                 .build();
 

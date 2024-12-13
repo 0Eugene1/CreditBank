@@ -95,7 +95,7 @@ class LoanOfferServiceTest {
                 .maritalStatus(MaritalStatus.SINGLE)
                 .dependentAmount(2)
                 .passportIssueDate(LocalDate.of(2000, 1, 1))
-                .passportIssueBrach("Branch")
+                .passportIssueBranch("Branch")
                 .employment(EmploymentDto.builder().build())
                 .accountNumber("1234567890")
                 .build();

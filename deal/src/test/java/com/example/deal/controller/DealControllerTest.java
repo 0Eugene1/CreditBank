@@ -82,8 +82,8 @@ class DealControllerTest {
                 .term(12)
                 .monthlyPayment(BigDecimal.valueOf(10000))
                 .rate(BigDecimal.valueOf(12.5))
-                .isInsuranceEnabled(true)
-                .isSalaryClient(false)
+                .insuranceEnabled(true)
+                .salaryClient(false)
                 .build();
 
         registrationDto = FinishRegistrationRequestDto.builder()
@@ -91,10 +91,10 @@ class DealControllerTest {
                 .maritalStatus(MaritalStatus.SINGLE)
                 .dependentAmount(0)
                 .passportIssueDate(LocalDate.of(2010, 5, 15))
-                .passportIssueBrach("Отделение МВД 123-456")
+                .passportIssueBranch("Отделение МВД 123-456")
                 .employment(EmploymentDto.builder()
                         .employmentStatus(EmploymentStatus.EMPLOYED)
-                        .employerINN("1234567890")
+                        .employerInn("1234567890")
                         .salary(BigDecimal.valueOf(50000))
                         .position(EmploymentPosition.WORKER)
                         .workExperienceTotal(5)

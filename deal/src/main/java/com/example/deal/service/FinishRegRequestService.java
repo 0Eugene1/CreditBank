@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,7 +65,7 @@ public class FinishRegRequestService {
 
 
     public ScoringDataDto getInformation(FinishRegistrationRequestDto registrationRequest,
-                               Statement statement) {
+                                         Statement statement) {
         log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
 
         if (statement.getClient() != null && statement.getClient().getPassport() == null) {
@@ -72,7 +73,7 @@ public class FinishRegRequestService {
         }
 
 
-        ScoringDataDto scoringData =  ScoringDataDto.builder()
+        ScoringDataDto scoringData = ScoringDataDto.builder()
                 // Данные из Statement
                 .amount(statement.getCredit().getAmount()) // Сумма кредита
                 .term(statement.getCredit().getTerm()) // Срок кредита
@@ -112,15 +113,10 @@ public class FinishRegRequestService {
         credit.setInsuranceEnabled(creditDto.isInsuranceEnabled());
         credit.setSalaryClient(creditDto.isSalaryClient());
         // Десериализация paymentSchedule
-        try {
-            List<PaymentScheduleElementDto> paymentSchedule = objectMapper.readValue(
-                    objectMapper.writeValueAsString(creditDto.getPaymentSchedule()),
-                    new TypeReference<List<PaymentScheduleElementDto>>() {}
-            );
-            credit.setPaymentSchedule(paymentSchedule);
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка сериализации: " + e.getMessage(), e);
-        }
+
+
+        // Устанавливаем paymentSchedule напрямую
+        credit.setPaymentSchedule(creditDto.getPaymentSchedule());
 
         credit.setMonthlyPayment(creditDto.getMonthlyPayment());
         credit.setTerm(creditDto.getTerm());
@@ -133,10 +129,30 @@ public class FinishRegRequestService {
     private void updateStatusHistory(Statement statement) {
         log.info("Updating status history for statement: {}", statement);
 
-        String updatedHistory = statement.getStatusHistory() != null
-                ? statement.getStatusHistory() + ", " + ApplicationStatus.PREAPPROVAL.name()
-                : ApplicationStatus.PREAPPROVAL.name();
-        statement.setStatusHistory(updatedHistory);
-        log.info("Updated status history for statement {}: {}", statement, updatedHistory);
+        // Получаем текущий список статусов (если существует)
+        String currentHistory = statement.getStatusHistory();
+        List<String> statusList = new ArrayList<>();
+
+        // Если в текущей истории что-то есть, десериализуем ее
+        if (currentHistory != null && !currentHistory.isEmpty()) {
+            try {
+                statusList = new ObjectMapper().readValue(currentHistory, new TypeReference<List<String>>() {
+                });
+            } catch (JsonProcessingException e) {
+                log.error("Error parsing current status history", e);
+            }
+        }
+
+        // Добавляем новый статус
+        statusList.add(ApplicationStatus.PREAPPROVAL.name());
+
+        // Преобразуем список в JSON строку и сохраняем
+        try {
+            String updatedHistory = new ObjectMapper().writeValueAsString(statusList);
+            statement.setStatusHistory(updatedHistory);
+            log.info("Updated status history for statement {}: {}", statement, updatedHistory);
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing updated status history", e);
+        }
     }
 }
