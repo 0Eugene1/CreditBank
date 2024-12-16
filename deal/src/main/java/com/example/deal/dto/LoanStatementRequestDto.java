@@ -23,26 +23,26 @@ public class LoanStatementRequestDto {
     @Positive(message = "Срок кредита должен быть положительным числом")
     private Integer term;
 
-    @NotBlank(message = "Имя не должно быть пустым")
+    @NotEmpty(message = "Имя не должно быть пустым") //NotEmpty
     private String firstName;
 
-    @NotBlank(message = "Фамилия не должна быть пустой")
+    @NotEmpty(message = "Фамилия не должна быть пустой")
     private String lastName;
 
     private String middleName; // Отчество не обязательно
 
-    @NotBlank(message = "Email не должен быть пустым")
+    @NotEmpty(message = "Email не должен быть пустым")
     @Email(message = "Некорректный формат Email")
     private String email;
 
     @NotNull(message = "Дата рождения не должна быть пустой")
     private LocalDate birthDate;
 
-    @NotBlank(message = "Серия паспорта не должна быть пустой")
+    @NotEmpty(message = "Серия паспорта не должна быть пустой")
     @Pattern(regexp = "\\d{4}", message = "Серия паспорта должна состоять из 4 цифр")
     private String passportSeries;
 
-    @NotBlank(message = "Номер паспорта не должен быть пустым")
+    @NotEmpty(message = "Номер паспорта не должен быть пустым")
     @Pattern(regexp = "\\d{6}", message = "Номер паспорта должна состоять из 6 цифр")
     private String passportNumber;
 }

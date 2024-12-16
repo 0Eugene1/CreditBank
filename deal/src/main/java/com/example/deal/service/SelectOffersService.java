@@ -60,7 +60,7 @@ public class SelectOffersService {
 
     }
 
-    // Создание новой записи истории статусов
+
     private StatementStatusHistoryDto createStatusHistoryEntry(ApplicationStatus status) {
 
         return StatementStatusHistoryDto.builder()

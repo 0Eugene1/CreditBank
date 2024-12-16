@@ -23,7 +23,7 @@ public class EmploymentDto {
     @NotNull(message = "Статус занятости не должен быть нулевым")
     private EmploymentStatus employmentStatus;
 
-    @NotBlank(message = "Необходимо указать ИНН работодателя")
+    @NotNull(message = "Необходимо указать ИНН работодателя")
     @Pattern(regexp = "\\d{10}|\\d{12}", message = "ИНН должен содержать 10 или 12 цифр")
     private String employerInn;
 
