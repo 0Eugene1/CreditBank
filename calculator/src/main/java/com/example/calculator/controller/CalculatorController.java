@@ -8,7 +8,6 @@ import com.example.calculator.dto.ScoringDataDto;
 import com.example.calculator.service.LoanCalcService;
 import com.example.calculator.service.LoanOfferService;
 import com.example.calculator.swagger.LoanCalcControllerApi;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

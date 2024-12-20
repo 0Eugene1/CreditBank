@@ -2,15 +2,13 @@ package com.example.deal.service;
 
 import com.example.deal.dto.*;
 import com.example.deal.entity.Client;
-import com.example.deal.entity.Credit;
-import com.example.deal.entity.Statement;
+
 import com.example.deal.enums.*;
 import com.example.deal.exception.StatementNotFoundException;
 import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,12 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
+
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -33,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor
 class FinishRegRequestServiceTest {
 
+    @Autowired
+    private MockMvc mockMvc;
     @Mock
     private CreditRepository creditRepository;
 
@@ -85,10 +84,17 @@ class FinishRegRequestServiceTest {
         when(statementRepository.findById(any(UUID.class))).thenReturn(java.util.Optional.empty());
 
         // Вызов метода и проверка исключения
-        StatementNotFoundException exception = assertThrows(StatementNotFoundException.class, () -> {
-            finishRegRequestService.finishRegistration(UUID.randomUUID().toString(), registrationRequest);
-        });
+        StatementNotFoundException exception = assertThrows(StatementNotFoundException.class, () -> finishRegRequestService.finishRegistration(UUID.randomUUID().toString(), registrationRequest));
 
         assertEquals("Statement not found", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPassportIsMissing() {
+        // Создаем клиента без паспорта
+        Client client = new Client();  // null как паспорт
+
+        // Проверяем, что при вызове метода getPassport() выбрасывается исключение
+        assertThrows(NullPointerException.class, () -> client.getPassport().getSeries());
     }
 }

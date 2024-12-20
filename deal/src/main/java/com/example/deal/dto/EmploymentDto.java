@@ -2,9 +2,6 @@ package com.example.deal.dto;
 
 import com.example.deal.enums.EmploymentPosition;
 import com.example.deal.enums.EmploymentStatus;
-import com.example.deal.enums.Gender;
-import com.example.deal.enums.MaritalStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +14,6 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)  // Игнорирует неизвестные поля
 public class EmploymentDto {
 
     @NotNull(message = "Статус занятости не должен быть нулевым")
@@ -41,8 +37,4 @@ public class EmploymentDto {
     @PositiveOrZero(message = "Текущий опыт работы не может быть отрицательным")
     private Integer workExperienceCurrent;
 
-    @AssertTrue(message = "Текущий опыт работы не может превышать общий")
-    private boolean isExperienceValid() {
-        return workExperienceCurrent <= workExperienceTotal;
-    }
 }

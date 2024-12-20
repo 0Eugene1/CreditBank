@@ -2,10 +2,8 @@ package com.example.deal.entity;
 
 import com.example.deal.dto.PaymentScheduleElementDto;
 import com.example.deal.enums.CreditStatus;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -28,7 +26,6 @@ public class Credit {
     private BigDecimal amount;
 
     @NotNull(message = "Срок кредита не может быть нулевым")
-    @JsonProperty("term")
     private Integer term;
 
     @NotNull(message = "Ежемесячный платеж не может быть нулевым")

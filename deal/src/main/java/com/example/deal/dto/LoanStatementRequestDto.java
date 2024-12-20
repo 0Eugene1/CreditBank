@@ -1,5 +1,6 @@
 package com.example.deal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)  // Игнорирует неизвестные поля
+
 public class LoanStatementRequestDto {
 
     @NotNull(message = "Сумма кредита не должна быть нулевой")
@@ -23,7 +26,7 @@ public class LoanStatementRequestDto {
     @Positive(message = "Срок кредита должен быть положительным числом")
     private Integer term;
 
-    @NotEmpty(message = "Имя не должно быть пустым") //NotEmpty
+    @NotEmpty(message = "Имя не должно быть пустым")
     private String firstName;
 
     @NotEmpty(message = "Фамилия не должна быть пустой")

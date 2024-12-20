@@ -8,9 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
@@ -27,11 +25,17 @@ public class GlobalExceptionHandler {
         log.error("Statement not found: {}", ex.getMessage()); // Логирование
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.error("IllegalArgumentException: {}", ex.getMessage());
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
 
     // Обработка других исключений
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", "Произошла ошибка: " + ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", STR."Произошла ошибка: \{ex.getMessage()}");
         log.error("Generic exception: {}", ex.getMessage(), ex); // Логирование
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
@@ -61,6 +65,7 @@ public class GlobalExceptionHandler {
         log.error("JSON processing error: {}", e.getMessage(), e); // Логирование
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+
 
     // Стандартный ответ для ошибок
     @Setter

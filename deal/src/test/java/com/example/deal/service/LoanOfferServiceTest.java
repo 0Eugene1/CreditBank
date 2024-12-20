@@ -1,13 +1,12 @@
 package com.example.deal.service;
 
-import com.example.deal.dto.EmploymentDto;
-import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.dto.LoanStatementRequestDto;
 import com.example.deal.entity.Client;
 import com.example.deal.entity.Credit;
 import com.example.deal.entity.Statement;
-import com.example.deal.enums.*;
+import com.example.deal.mapper.ClientMapper;
+import com.example.deal.mapper.StatementMapper;
 import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
@@ -17,13 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,143 +39,105 @@ class LoanOfferServiceTest {
     @Mock
     private CalculatorClient calculatorClient;
 
+    @Mock
+    private ClientMapper clientMapper;
+
+    @Mock
+    private StatementMapper statementMapper;
+
     @InjectMocks
     private LoanOfferService loanOfferService;
 
-    private LoanStatementRequestDto request;
-    private Client mockClient;
-    private Statement mockStatement;
-    private LoanOfferDto mockLoanOffer;
-    private FinishRegistrationRequestDto registrationRequest;
-    private LoanStatementRequestDto loanStatementRequestDto;
+    private LoanStatementRequestDto requestDto;
+    private Client client;
+    private Credit credit;
+    private Statement statement;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Инициализация объектов
-        request = LoanStatementRequestDto.builder()
-                .amount(new BigDecimal("10000"))
-                .term(12)
-                .firstName("FirstName")
-                .lastName("LastName")
-                .middleName("MiddleName")
-                .email("mail@example.com")
+        // Инициализация данных для тестов
+        requestDto = LoanStatementRequestDto.builder()
+                .amount(BigDecimal.valueOf(100000))
+                .term(24)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
                 .birthDate(LocalDate.of(1990, 1, 1))
-                .passportSeries("AA")
-                .passportNumber("123456")
+                .passportSeries("1234")
+                .passportNumber("567890")
                 .build();
 
-        mockClient = new Client();
-        mockClient.setFirstName(request.getFirstName());
-        mockClient.setLastName(request.getLastName());
+        client = new Client();
+        client.setClientId(UUID.randomUUID());
 
-        mockStatement = Statement.builder()
+        credit = new Credit();
+        credit.setCreditId(UUID.randomUUID());
+
+        statement = Statement.builder()
                 .statementId(UUID.randomUUID())
-                .client(mockClient)
-                .status(ApplicationStatus.PREAPPROVAL)
-                .creationDate(LocalDateTime.now())
-                .appliedOffer("{}")
-                .statusHistory("{}")
-                .build();
-
-        mockLoanOffer = LoanOfferDto.builder()
-                .totalAmount(BigDecimal.valueOf(10000.0))
-                .statementId(mockStatement.getStatementId())
-                .build();
-
-        // Заводим данные для FinishRegistrationRequestDto
-        registrationRequest = FinishRegistrationRequestDto.builder()
-                .gender(Gender.MALE)
-                .maritalStatus(MaritalStatus.SINGLE)
-                .dependentAmount(2)
-                .passportIssueDate(LocalDate.of(2000, 1, 1))
-                .passportIssueBranch("Branch")
-                .employment(EmploymentDto.builder().build())
-                .accountNumber("1234567890")
-                .build();
-
-        // Заводим данные для LoanStatementRequestDto
-        loanStatementRequestDto = LoanStatementRequestDto.builder()
-                .amount(BigDecimal.valueOf(30000.0))
-                .term(12)
-                .firstName("FirstName")
-                .lastName("LastName")
-                .middleName("Middle")
-                .email("johndoe@example.com")
-                .birthDate(LocalDate.of(1985, 5, 15))
-                .passportSeries("AB")
-                .passportNumber("123456")
+                .client(client)
+                .credit(credit)
                 .build();
     }
 
     @Test
-    void testCreateClientFromRequest_success() {
-        // Моки
-        Statement mockStatement = Statement.builder().build();
-        mockStatement.setStatementId(UUID.randomUUID());
+    void createClientFromRequest_ShouldReturnSortedLoanOffers() {
+        // Мокируем зависимости
+        when(clientMapper.toEntity(requestDto)).thenReturn(client);
+        when(clientRepository.save(client)).thenReturn(client);
 
-        LoanOfferDto mockLoanOffer = LoanOfferDto.builder().build();
-        mockLoanOffer.setTotalAmount(BigDecimal.valueOf(10000.0));
-        mockLoanOffer.setStatementId(mockStatement.getStatementId());
+        when(statementMapper.toCreditEntity(requestDto)).thenReturn(credit);
+        when(creditRepository.save(credit)).thenReturn(credit);
 
+        when(statementMapper.toEntity(requestDto, client, credit)).thenReturn(statement);
+        when(statementRepository.save(statement)).thenReturn(statement);
 
-        when(clientRepository.save(any(Client.class))).thenReturn(mockClient);
-        when(creditRepository.save(any(Credit.class))).thenReturn(new Credit());
-        when(statementRepository.save(any(Statement.class))).thenReturn(mockStatement);
-        when(calculatorClient.getLoanOffers(any(LoanStatementRequestDto.class)))
-                .thenReturn(Arrays.asList(mockLoanOffer));
+        LoanOfferDto offer1 = LoanOfferDto.builder()
+                .totalAmount(BigDecimal.valueOf(200000))
+                .statementId(statement.getStatementId())
+                .build();
 
-        // Вызов метода
-        List<LoanOfferDto> result = loanOfferService.createClientFromRequest(request);
+        LoanOfferDto offer2 = LoanOfferDto.builder()
+                .totalAmount(BigDecimal.valueOf(150000))
+                .statementId(statement.getStatementId())
+                .build();
 
-        // Проверки
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(mockStatement.getStatementId(), result.get(0).getStatementId());
-        verify(clientRepository, times(1)).save(any(Client.class));
-        verify(statementRepository, times(1)).save(any(Statement.class));
-        verify(calculatorClient, times(1)).getLoanOffers(any(LoanStatementRequestDto.class));
+        when(calculatorClient.getLoanOffers(requestDto)).thenReturn(List.of(offer1, offer2));
+
+        // Вызов тестируемого метода
+        List<LoanOfferDto> result = loanOfferService.createClientFromRequest(requestDto);
+
+        // Проверяем сортировку
+        assertEquals(2, result.size());
+        assertEquals(offer2.getTotalAmount(), result.get(0).getTotalAmount());
+        assertEquals(offer1.getTotalAmount(), result.get(1).getTotalAmount());
+
+        // Проверяем вызовы зависимостей
+        verify(clientRepository).save(client);
+        verify(statementRepository).save(statement);
+        verify(calculatorClient).getLoanOffers(requestDto);
     }
 
     @Test
-    void testCreateClientFromRequest_noLoanOffers() {
-        // Моки
-        when(calculatorClient.getLoanOffers(any(LoanStatementRequestDto.class)))
-                .thenReturn(Arrays.asList());
+    void createClientFromRequest_ShouldThrowException_WhenLoanOffersEmpty() {
+        when(clientMapper.toEntity(requestDto)).thenReturn(client);
+        when(clientRepository.save(client)).thenReturn(client);
 
-        // Вызов метода и проверка исключения
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            loanOfferService.createClientFromRequest(request);
-        });
+        when(statementMapper.toCreditEntity(requestDto)).thenReturn(credit);
+        when(creditRepository.save(credit)).thenReturn(credit);
+
+        when(statementMapper.toEntity(requestDto, client, credit)).thenReturn(statement);
+        when(statementRepository.save(statement)).thenReturn(statement);
+
+        when(calculatorClient.getLoanOffers(requestDto)).thenReturn(List.of());
+
+        // Проверяем, что метод выбрасывает исключение
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanOfferService.createClientFromRequest(requestDto));
 
         assertEquals("Кредитные предложения не могут быть пустыми.", exception.getMessage());
-    }
-    @Test
-    void testCreateClientFromRequest_loanOffersSorted() {
-        // Моки
-        LoanOfferDto mockLoanOffer1 = LoanOfferDto.builder()
-                .totalAmount(BigDecimal.valueOf(20000.0))
-                .statementId(mockStatement.getStatementId())
-                .build();
-
-        LoanOfferDto mockLoanOffer2 = LoanOfferDto.builder()
-                .totalAmount(BigDecimal.valueOf(10000.0))
-                .statementId(mockStatement.getStatementId())
-                .build();
-
-
-        when(clientRepository.save(any(Client.class))).thenReturn(mockClient);
-        when(creditRepository.save(any(Credit.class))).thenReturn(new Credit());
-        when(statementRepository.save(any(Statement.class))).thenReturn(mockStatement);
-        when(calculatorClient.getLoanOffers(any(LoanStatementRequestDto.class)))
-                .thenReturn(Arrays.asList(mockLoanOffer1, mockLoanOffer2));
-
-        // Вызов метода
-        List<LoanOfferDto> result = loanOfferService.createClientFromRequest(loanStatementRequestDto);
-
-        // Проверка, что список отсортирован по totalAmount
-        assertEquals(0, BigDecimal.valueOf(10000.0).compareTo(result.get(0).getTotalAmount()));
-        assertEquals(0, BigDecimal.valueOf(20000.0).compareTo(result.get(1).getTotalAmount()));
+        verify(calculatorClient).getLoanOffers(requestDto);
     }
 }

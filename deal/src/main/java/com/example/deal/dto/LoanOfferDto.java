@@ -22,7 +22,6 @@ import java.util.UUID;
 public class LoanOfferDto {
 
     @NotNull(message = "Идентификатор заявления не должен быть нулевым")
-    @JsonProperty("statementId")
     private UUID statementId;
 
     @NotNull(message = "Запрошенная сумма не должна быть нулевой")
@@ -42,13 +41,15 @@ public class LoanOfferDto {
     private BigDecimal monthlyPayment;
 
     @NotNull(message = "Ставка не должна быть нулевой.")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Ставка должна быть не меньше 0%")
-    @DecimalMax(value = "100.0", inclusive = true, message = "Ставка должна быть не больше 100%")
+    @DecimalMin(value = "0.0", message = "Ставка должна быть не меньше 0%")
+    @DecimalMax(value = "100.0", message = "Ставка должна быть не больше 100%")
     private BigDecimal rate;
 
+    @NotNull(message = "Поле insuranceEnabled не может быть null")
     @JsonProperty("insuranceEnabled")
-    private boolean insuranceEnabled;
+    private Boolean insuranceEnabled;
 
+    @NotNull(message = "Поле salaryClient не может быть null")
     @JsonProperty("salaryClient")
-    private boolean salaryClient;
+    private Boolean salaryClient;
 }

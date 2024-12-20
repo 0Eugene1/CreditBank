@@ -2,21 +2,20 @@ package com.example.deal.service;
 
 import com.example.deal.dto.CreditDto;
 import com.example.deal.dto.FinishRegistrationRequestDto;
-import com.example.deal.dto.FinishRegistrationRequestDto;
-import com.example.deal.dto.PaymentScheduleElementDto;
+
 import com.example.deal.dto.ScoringDataDto;
 import com.example.deal.entity.Credit;
 import com.example.deal.entity.Statement;
 import com.example.deal.enums.ApplicationStatus;
-import com.example.deal.enums.CreditStatus;
+import com.example.deal.enums.ChangeType;
 import com.example.deal.exception.StatementNotFoundException;
+import com.example.deal.json.StatusHistory;
+import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataMapper;
+import com.example.deal.mapper.StatusHistoryMapper;
 import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,9 @@ public class FinishRegRequestService {
     private final CreditRepository creditRepository;
     private final StatementRepository statementRepository;
     private final CalculatorClient calculateCredit;
+    private final CreditMapper creditMapper;
+    private final StatusHistoryMapper statusHistoryMapper;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
     public void finishRegistration(String statementId, FinishRegistrationRequestDto registrationRequest) {
@@ -58,10 +58,12 @@ public class FinishRegRequestService {
         statement.setStatus(ApplicationStatus.PREAPPROVAL);
         updateStatusHistory(statement);
 
+
         // 6. Сохранить Credit и Statement
         statement.setCredit(credit);
         statementRepository.save(statement);
         log.info("Statement updated and saved with new credit: {}", statement);
+
     }
 
 
@@ -69,8 +71,14 @@ public class FinishRegRequestService {
         log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
 
         if (statement.getClient() != null && statement.getClient().getPassport() == null) {
-            log.error("Passport data missing for client: {} {}", statement.getClient().getFirstName(), statement.getClient().getLastName());
+            log.error("Passport data missing for client: {} {}, Statement ID: {}",
+                    statement.getClient().getFirstName(),
+                    statement.getClient().getLastName(),
+                    statement.getStatementId());
+            throw new IllegalArgumentException("Passport data is missing for the client.");
         }
+
+
 
         // Используем маппер для создания объекта ScoringDataDto
         ScoringDataDto scoringData = ScoringDataMapper.toScoringDataDto(registrationRequest, statement);
@@ -80,55 +88,38 @@ public class FinishRegRequestService {
     }
 
     public Credit createCreditFromDto(CreditDto creditDto) {
-        log.info("Creating Credit entity from CreditDto: {}", creditDto);
-
-        Credit credit = new Credit();
-        credit.setAmount(creditDto.getAmount());
-        credit.setPsk(creditDto.getPsk());
-        credit.setRate(creditDto.getRate());
-        credit.setInsuranceEnabled(creditDto.isInsuranceEnabled());
-        credit.setSalaryClient(creditDto.isSalaryClient());
-        // Десериализация paymentSchedule
-
-
-        // Устанавливаем paymentSchedule напрямую
-        credit.setPaymentSchedule(creditDto.getPaymentSchedule());
-
-        credit.setMonthlyPayment(creditDto.getMonthlyPayment());
-        credit.setTerm(creditDto.getTerm());
-        credit.setCreditStatus(CreditStatus.CALCULATED);
-
         log.info("Creating Credit from DTO: {}", creditDto);
-        return creditRepository.save(credit);
+
+        Credit credit = creditMapper.creditToEntity(creditDto);
+        Credit savedCredit = creditRepository.save(credit);
+
+        log.info("Credit entity saved: {}", savedCredit);
+        return savedCredit;
     }
+
 
     private void updateStatusHistory(Statement statement) {
         log.info("Updating status history for statement: {}", statement);
 
-        // Получаем текущий список статусов (если существует)
-        String currentHistory = statement.getStatusHistory();
-        List<String> statusList = new ArrayList<>();
-
-        // Если в текущей истории что-то есть, десериализуем ее
-        if (currentHistory != null && !currentHistory.isEmpty()) {
-            try {
-                statusList = new ObjectMapper().readValue(currentHistory, new TypeReference<List<String>>() {
-                });
-            } catch (JsonProcessingException e) {
-                log.error("Error parsing current status history", e);
-            }
+        // Получаем текущую историю статусов (если существует)
+        List<StatusHistory> statusList = statement.getStatusHistory();
+        if (statusList == null) {
+            statusList = new ArrayList<>();
         }
 
-        // Добавляем новый статус
-        statusList.add(ApplicationStatus.PREAPPROVAL.name());
+        // Используем StatusHistoryMapper для создания нового статуса
+        StatusHistory newStatus = statusHistoryMapper.toEntity(ApplicationStatus.PREAPPROVAL, ChangeType.AUTOMATIC);
 
-        // Преобразуем список в JSON строку и сохраняем
-        try {
-            String updatedHistory = new ObjectMapper().writeValueAsString(statusList);
-            statement.setStatusHistory(updatedHistory);
-            log.info("Updated status history for statement {}: {}", statement, updatedHistory);
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing updated status history", e);
-        }
+        // Добавляем новый статус в историю
+        statusList.add(newStatus);
+
+        // Обновляем history и статус заявки
+        statement.setStatusHistory(statusList); // Обновляем историю статусов
+        statement.setStatus(ApplicationStatus.PREAPPROVAL); // Обновляем статус заявки
+
+        // Сохраняем обновленную заявку
+        statementRepository.save(statement);
+
+        log.info("Updated status history and status for statement {}: {}", statement, statusList);
     }
 }

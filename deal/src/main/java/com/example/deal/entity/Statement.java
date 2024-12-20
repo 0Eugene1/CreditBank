@@ -1,7 +1,7 @@
 package com.example.deal.entity;
 
 import com.example.deal.enums.ApplicationStatus;
-import jakarta.validation.constraints.NotEmpty;
+import com.example.deal.json.StatusHistory;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import jakarta.persistence.*;
@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -25,11 +26,11 @@ public class Statement {
     private UUID statementId;
 
     @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false) //
+    @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
     @ManyToOne
-    @JoinColumn(name = "credit_id", nullable = false) //
+    @JoinColumn(name = "credit_id", nullable = false)
     private Credit credit;
 
     @Enumerated(EnumType.STRING)
@@ -48,6 +49,6 @@ public class Statement {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     @NotNull(message = "История статусов не может быть пустой")
-    private String statusHistory;
+    private List<StatusHistory> statusHistory;
 
 }

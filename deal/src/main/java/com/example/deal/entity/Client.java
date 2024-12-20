@@ -6,7 +6,7 @@ import com.example.deal.json.Employment;
 import com.example.deal.json.Passport;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,10 +24,10 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID clientId;
 
-    @NotBlank(message = "Фамилия не должна быть пустой")
+    @NotEmpty(message = "Фамилия не должна быть пустой")
     private String lastName;
 
-    @NotBlank(message = "Имя не должно быть пустым")
+    @NotEmpty(message = "Имя не должно быть пустым")
     private String firstName;
 
     private String middleName;

@@ -7,24 +7,30 @@ import com.example.deal.entity.Statement;
 public class ScoringDataMapper {
 
     public static ScoringDataDto toScoringDataDto(FinishRegistrationRequestDto registrationRequest, Statement statement) {
+
         return ScoringDataDto.builder()
-                .amount(statement.getCredit().getAmount())
-                .term(statement.getCredit().getTerm())
-                .firstName(statement.getClient().getFirstName())
-                .lastName(statement.getClient().getLastName())
-                .middleName(statement.getClient().getMiddleName())
-                .gender(registrationRequest.getGender())
-                .birthDate(statement.getClient().getBirthDate())
-                .passportSeries(statement.getClient().getPassport().getSeries())
-                .passportNumber(statement.getClient().getPassport().getNumber())
-                .passportIssueDate(registrationRequest.getPassportIssueDate())
-                .passportIssueBranch(registrationRequest.getPassportIssueBranch())
-                .maritalStatus(registrationRequest.getMaritalStatus())
-                .dependentAmount(registrationRequest.getDependentAmount())
-                .employment(registrationRequest.getEmployment())
-                .accountNumber(registrationRequest.getAccountNumber())
-                .isInsuranceEnabled(statement.getCredit().isInsuranceEnabled())
-                .isSalaryClient(statement.getCredit().isSalaryClient())
+                // Данные из Statement
+                .amount(statement.getCredit().getAmount()) // Сумма кредита
+                .term(statement.getCredit().getTerm()) // Срок кредита
+                .firstName(statement.getClient().getFirstName()) // Имя клиента
+                .lastName(statement.getClient().getLastName()) // Фамилия клиента
+                .middleName(statement.getClient().getMiddleName()) // Отчество клиента (если есть)
+                .birthDate(statement.getClient().getBirthDate()) // Дата рождения клиента или значение по умолчанию
+                .passportSeries(statement.getClient() != null && statement.getClient().getPassport() != null
+                        ? statement.getClient().getPassport().getSeries() : "UNKNOWN") // Серия паспорта
+                .passportNumber(statement.getClient() != null && statement.getClient().getPassport() != null
+                        ? statement.getClient().getPassport().getNumber() : "UNKNOWN") // Номер паспорта
+                .isInsuranceEnabled(statement.getCredit().isInsuranceEnabled()) // Наличие страховки
+                .isSalaryClient(statement.getCredit().isSalaryClient()) // Клиент получает зарплату через банк
+
+                // Данные из FinishRegistrationRequestDto
+                .accountNumber(registrationRequest.getAccountNumber()) // Номер аккаунта
+                .gender(registrationRequest.getGender()) // Пол
+                .employment(registrationRequest.getEmployment()) // Информация о занятости
+                .maritalStatus(registrationRequest.getMaritalStatus()) // Семейное положение
+                .dependentAmount(registrationRequest.getDependentAmount()) // Количество иждивенцев
+                .passportIssueBranch(registrationRequest.getPassportIssueBranch()) // Отделение выдачи паспорта
+                .passportIssueDate(registrationRequest.getPassportIssueDate()) // Дата выдачи паспорта
                 .build();
     }
 }
