@@ -2,6 +2,7 @@ package com.example.deal.json;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,13 +17,13 @@ import java.util.UUID;
 @Setter
 public class Passport {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID passportUuid;
     @NotEmpty(message = "Серия паспорта не может быть пустой")
     private String series;
     @NotEmpty(message = "Номер паспорта не может быть пустым")
     private String number;
-    @NotEmpty(message = "Отделение выдачи паспорта не может быть пустым")
+    @NotNull(message = "Отделение выдачи паспорта не может быть пустым")
     private String issueBranch;
     @NotNull(message = "Дата выдачи паспорта не может быть пустой")
     private LocalDate issueDate;

@@ -2,9 +2,8 @@ package com.example.deal.entity;
 
 import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.json.StatusHistory;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -40,7 +39,6 @@ public class Statement {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    @NotNull(message = "Applied Offer не может быть пустым")
     private String appliedOffer;
 
     private LocalDateTime signDate;
@@ -48,7 +46,6 @@ public class Statement {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    @NotNull(message = "История статусов не может быть пустой")
     private List<StatusHistory> statusHistory;
 
 }

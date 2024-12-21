@@ -46,7 +46,7 @@ public class Client {
 
     private int dependentAmount;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "passport_id")
     @NotNull(message = "Паспорт не должен быть пустым")
     private Passport passport;

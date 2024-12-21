@@ -25,16 +25,13 @@ public class Credit {
     @NotNull(message = "Сумма кредита не может быть нулевой")
     private BigDecimal amount;
 
-    @NotNull(message = "Срок кредита не может быть нулевым")
     private Integer term;
 
-    @NotNull(message = "Ежемесячный платеж не может быть нулевым")
     private BigDecimal monthlyPayment;
 
     @NotNull(message = "Ставка не может быть нулевой")
     private BigDecimal rate;
 
-    @NotNull(message = "PSK не может быть нулевым")
     private BigDecimal psk;
 
     @JdbcTypeCode(SqlTypes.JSON)
