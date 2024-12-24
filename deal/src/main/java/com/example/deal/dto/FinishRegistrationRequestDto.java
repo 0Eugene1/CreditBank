@@ -2,7 +2,6 @@ package com.example.deal.dto;
 
 import com.example.deal.enums.Gender;
 import com.example.deal.enums.MaritalStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -18,7 +17,6 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)  // Игнорирует неизвестные поля
 public class FinishRegistrationRequestDto {
 
     @NotNull(message = "Гендер не должен быть пуст")

@@ -2,18 +2,17 @@ package com.example.deal.service;
 
 import com.example.deal.dto.CreditDto;
 import com.example.deal.dto.FinishRegistrationRequestDto;
-
 import com.example.deal.dto.ScoringDataDto;
 import com.example.deal.entity.Credit;
 import com.example.deal.entity.Statement;
 import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.enums.ChangeType;
 import com.example.deal.exception.StatementNotFoundException;
+import com.example.deal.feignclient.CalculatorScoringClient;
 import com.example.deal.json.StatusHistory;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataMapper;
 import com.example.deal.mapper.StatusHistoryMapper;
-import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
 import jakarta.transaction.Transactional;
@@ -32,9 +31,10 @@ public class FinishRegRequestService {
 
     private final CreditRepository creditRepository;
     private final StatementRepository statementRepository;
-    private final CalculatorClient calculateCredit;
     private final CreditMapper creditMapper;
     private final StatusHistoryMapper statusHistoryMapper;
+    private final CalculatorScoringClient calculatorScoringClient;
+
 
 
     @Transactional
@@ -48,8 +48,10 @@ public class FinishRegRequestService {
         // 2. Создать ScoringDataDto
         ScoringDataDto scoringData = getInformation(registrationRequest, statement);
 
+
         // 3. Отправить ScoringDataDto в кредитный конвейер и получить CreditDto
-        CreditDto creditDto = calculateCredit.sendScoringData(scoringData);
+        CreditDto creditDto = calculatorScoringClient.sendScoringData(scoringData);  // Прямой вызов клиента
+
 
         // 4. Создать сущность Credit и сохранить в базу
         Credit credit = createCreditFromDto(creditDto);
@@ -71,14 +73,12 @@ public class FinishRegRequestService {
         log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
 
         if (statement.getClient() != null && statement.getClient().getPassport() == null) {
-            log.error("Passport data missing for client: {} {}, Statement ID: {}",
+            log.error("Data is missing for : {} {}, Statement ID: {}",
                     statement.getClient().getFirstName(),
                     statement.getClient().getLastName(),
                     statement.getStatementId());
             throw new IllegalArgumentException("Passport data is missing for the client.");
         }
-
-
 
         // Используем маппер для создания объекта ScoringDataDto
         ScoringDataDto scoringData = ScoringDataMapper.toScoringDataDto(registrationRequest, statement);

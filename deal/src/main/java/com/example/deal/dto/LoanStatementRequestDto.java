@@ -1,6 +1,5 @@
 package com.example.deal.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +13,6 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)  // Игнорирует неизвестные поля
 
 public class LoanStatementRequestDto {
 
@@ -32,7 +30,7 @@ public class LoanStatementRequestDto {
     @NotEmpty(message = "Фамилия не должна быть пустой")
     private String lastName;
 
-    private String middleName; // Отчество не обязательно
+    private String middleName;
 
     @NotEmpty(message = "Email не должен быть пустым")
     @Email(message = "Некорректный формат Email")

@@ -5,7 +5,6 @@ import com.example.deal.entity.Client;
 
 import com.example.deal.enums.*;
 import com.example.deal.exception.StatementNotFoundException;
-import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
@@ -38,8 +37,6 @@ class FinishRegRequestServiceTest {
     @Mock
     private StatementRepository statementRepository;
 
-    @Mock
-    private CalculatorClient calculateCredit;
 
     @InjectMocks
     private FinishRegRequestService finishRegRequestService;
@@ -48,7 +45,6 @@ class FinishRegRequestServiceTest {
 
     private ClientRepository clientRepository;
 
-    private CalculatorClient calculatorClient;
 
     private LoanOfferService loanOfferService;
 

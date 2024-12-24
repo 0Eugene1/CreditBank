@@ -1,5 +1,6 @@
 package com.example.deal.entity;
 
+import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.json.StatusHistory;
 import jakarta.persistence.*;
@@ -39,7 +40,7 @@ public class Statement {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private String appliedOffer;
+    private LoanOfferDto appliedOffer;
 
     private LocalDateTime signDate;
     private String sesCode;

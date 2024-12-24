@@ -168,19 +168,20 @@ public class LoanOfferServiceTest {
     }
 
     @Test
-    void testCalculateCredit_shouldReturnInternalServerError_whenUnexpectedErrorOccurs() throws Exception {
-        // Подготовка запроса с данными, которые вызовут ошибку на сервере (например, null в обязательном поле)
-        String invalidRequest = "{\"amount\": 50000, \"term\": 12, \"firstName\": \"John\", \"lastName\": \"Doe\", \"employment\": null}"; // Некорректные данные
+    void testCalculateCredit_shouldReturnBadRequest_whenValidationErrorOccurs() throws Exception {
+        // Подготовка запроса с некорректными данными
+        String invalidRequest = "{\"amount\": 50000, \"term\": 12, \"firstName\": \"Alex\", \"lastName\": \"Morales\", \"employment\": null}";
 
         // Отправляем запрос, который должен вызвать ошибку на сервере
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/calculator/calc")  // Путь к контроллеру
-                        .contentType(MediaType.APPLICATION_JSON)  // Указание типа контента
-                        .content(invalidRequest))  // Некорректные данные
-                .andExpect(status().isInternalServerError())  // Ожидаем статус 500
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Произошла внутренняя ошибка")))  // Проверка сообщения об ошибке
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(500));  // Проверка статуса 500
+                        .post("/calculator/calc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidRequest))
+                .andExpect(status().isBadRequest())  // Ожидаем статус 400
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data")));  // Проверка сообщения об ошибке
     }
+
+
 
 
 

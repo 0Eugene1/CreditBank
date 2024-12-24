@@ -5,9 +5,9 @@ import com.example.deal.dto.LoanStatementRequestDto;
 import com.example.deal.entity.Client;
 import com.example.deal.entity.Credit;
 import com.example.deal.entity.Statement;
+import com.example.deal.feignclient.CalculatorOffersClient;
 import com.example.deal.mapper.ClientMapper;
 import com.example.deal.mapper.StatementMapper;
-import com.example.deal.mccalculator.CalculatorClient;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.CreditRepository;
 import com.example.deal.repository.StatementRepository;
@@ -37,7 +37,7 @@ class LoanOfferServiceTest {
     private StatementRepository statementRepository;
 
     @Mock
-    private CalculatorClient calculatorClient;
+    private CalculatorOffersClient calculatorOffersClient;
 
     @Mock
     private ClientMapper clientMapper;
@@ -104,7 +104,7 @@ class LoanOfferServiceTest {
                 .statementId(statement.getStatementId())
                 .build();
 
-        when(calculatorClient.getLoanOffers(requestDto)).thenReturn(List.of(offer1, offer2));
+        when(calculatorOffersClient.getLoanOffers(requestDto)).thenReturn(List.of(offer1, offer2));
 
         // Вызов тестируемого метода
         List<LoanOfferDto> result = loanOfferService.createClientFromRequest(requestDto);
@@ -117,7 +117,7 @@ class LoanOfferServiceTest {
         // Проверяем вызовы зависимостей
         verify(clientRepository).save(client);
         verify(statementRepository).save(statement);
-        verify(calculatorClient).getLoanOffers(requestDto);
+        verify(calculatorOffersClient).getLoanOffers(requestDto);
     }
 
     @Test
@@ -131,13 +131,13 @@ class LoanOfferServiceTest {
         when(statementMapper.toEntity(requestDto, client, credit)).thenReturn(statement);
         when(statementRepository.save(statement)).thenReturn(statement);
 
-        when(calculatorClient.getLoanOffers(requestDto)).thenReturn(List.of());
+        when(calculatorOffersClient.getLoanOffers(requestDto)).thenReturn(List.of());
 
         // Проверяем, что метод выбрасывает исключение
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanOfferService.createClientFromRequest(requestDto));
 
         assertEquals("Кредитные предложения не могут быть пустыми.", exception.getMessage());
-        verify(calculatorClient).getLoanOffers(requestDto);
+        verify(calculatorOffersClient).getLoanOffers(requestDto);
     }
 }

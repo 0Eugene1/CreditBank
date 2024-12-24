@@ -1,6 +1,7 @@
 package com.example.deal.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import feign.FeignException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<GlobalExceptionHandler.ErrorResponse> handleFeignException(FeignException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.status());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        String message = switch (status) {
+            case BAD_REQUEST -> "Invalid request sent to external service.";
+            case NOT_FOUND -> "Resource not found on external service.";
+            case INTERNAL_SERVER_ERROR -> "External service encountered an error.";
+            default -> "An unexpected error occurred while communicating with external service.";
+        };
+
+        log.error("Feign exception: status={}, message={}", ex.status(), ex.getMessage(), ex);
+        return ResponseEntity.status(status)
+                .body(new GlobalExceptionHandler.ErrorResponse(status.name(), message));
+    }
 
     // Стандартный ответ для ошибок
     @Setter

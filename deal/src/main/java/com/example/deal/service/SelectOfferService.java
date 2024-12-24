@@ -8,11 +8,9 @@ import com.example.deal.exception.StatementNotFoundException;
 import com.example.deal.json.StatusHistory;
 import com.example.deal.mapper.StatusHistoryMapper;
 import com.example.deal.repository.StatementRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,32 +50,13 @@ public class SelectOfferService {
         statement.setStatusHistory(historyList);
 
         // Устанавливаем выбранное предложение в поле appliedOffer
-        statement.setAppliedOffer(convertLoanOfferToJson(offer));
-
+        statement.setAppliedOffer(offer);
 
         // Сохраняем обновленную заявку
         statementRepository.save(statement);
 
         log.info("Loan offer selected and statement updated: {}", statement);
 
-    }
-    private String convertLoanOfferToJson(LoanOfferDto offer) {
-        try {
-            return objectMapper.writeValueAsString(offer);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize LoanOfferDto: {}", offer, e);
-            throw new SerializationException("Ошибка при сериализации объекта", e);
-        }
-//
-//    private List<StatementStatusHistoryDto> getStatusHistory(String json) {
-//        try {
-//            CollectionType collectionType = objectMapper.getTypeFactory().constructCollectionType(List.class, StatementStatusHistoryDto.class);
-//            return objectMapper.readValue(json, collectionType);
-//        } catch (JsonProcessingException e) {
-//            log.error("Failed to deserialize status history JSON: {}", json, e);
-//            throw new RuntimeException("Ошибка при десериализации истории статусов", e);
-//        }
-//    }
     }
 }
 
