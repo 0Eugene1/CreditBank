@@ -8,7 +8,6 @@ import com.example.deal.exception.StatementNotFoundException;
 import com.example.deal.json.StatusHistory;
 import com.example.deal.mapper.StatusHistoryMapper;
 import com.example.deal.repository.StatementRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import java.util.List;
 public class SelectOfferService {
 
     private final StatementRepository statementRepository;
-    private final ObjectMapper objectMapper;
     private final StatusHistoryMapper statusHistoryMapper;
 
 

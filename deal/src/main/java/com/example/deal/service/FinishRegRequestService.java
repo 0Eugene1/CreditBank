@@ -45,33 +45,7 @@ public class FinishRegRequestService {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new StatementNotFoundException("Statement not found"));
 
-        // 2. Создать ScoringDataDto
-        ScoringDataDto scoringData = getInformation(registrationRequest, statement);
-
-
-        // 3. Отправить ScoringDataDto в кредитный конвейер и получить CreditDto
-        CreditDto creditDto = calculatorScoringClient.sendScoringData(scoringData);  // Прямой вызов клиента
-
-
-        // 4. Создать сущность Credit и сохранить в базу
-        Credit credit = createCreditFromDto(creditDto);
-
-        // 5. Обновить статус Statement
-        statement.setStatus(ApplicationStatus.PREAPPROVAL);
-        updateStatusHistory(statement);
-
-
-        // 6. Сохранить Credit и Statement
-        statement.setCredit(credit);
-        statementRepository.save(statement);
-        log.info("Statement updated and saved with new credit: {}", statement);
-
-    }
-
-
-    public ScoringDataDto getInformation(FinishRegistrationRequestDto registrationRequest, Statement statement) {
-        log.info("Creating ScoringDataDto from FinishRegistrationRequestDto and Statement.");
-
+        // 2. Проверка данных клиента и создание ScoringDataDto
         if (statement.getClient() != null && statement.getClient().getPassport() == null) {
             log.error("Data is missing for : {} {}, Statement ID: {}",
                     statement.getClient().getFirstName(),
@@ -83,20 +57,24 @@ public class FinishRegRequestService {
         // Используем маппер для создания объекта ScoringDataDto
         ScoringDataDto scoringData = ScoringDataMapper.toScoringDataDto(registrationRequest, statement);
 
-        log.debug("Generated ScoringDataDto: {}", scoringData);
-        return scoringData;
-    }
+        // 3. Отправить ScoringDataDto в кредитный конвейер и получить CreditDto
+        CreditDto creditDto = calculatorScoringClient.sendScoringData(scoringData);  // Прямой вызов клиента
 
-    public Credit createCreditFromDto(CreditDto creditDto) {
-        log.info("Creating Credit from DTO: {}", creditDto);
-
+        // 4. Создать сущность Credit и сохранить в базу
         Credit credit = creditMapper.creditToEntity(creditDto);
         Credit savedCredit = creditRepository.save(credit);
 
         log.info("Credit entity saved: {}", savedCredit);
-        return savedCredit;
-    }
 
+        // 5. Обновить статус Statement
+        statement.setStatus(ApplicationStatus.PREAPPROVAL);
+        updateStatusHistory(statement);
+
+        // 6. Сохранить Credit и Statement
+        statement.setCredit(savedCredit);
+        statementRepository.save(statement);
+        log.info("Statement updated and saved with new credit: {}", statement);
+    }
 
     private void updateStatusHistory(Statement statement) {
         log.info("Updating status history for statement: {}", statement);
