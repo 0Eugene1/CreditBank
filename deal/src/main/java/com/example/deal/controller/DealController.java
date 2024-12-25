@@ -26,6 +26,7 @@ public class DealController implements DealControllerApi {
     private final FinishRegRequestService finishRegRequestService;
 
 
+    @Override
     @PostMapping("/statement")
     public ResponseEntity<List<LoanOfferDto>> calculateLoanOffers(@Valid @RequestBody LoanStatementRequestDto request) {
         log.info("Received loan statement request: {}", request);
@@ -34,6 +35,7 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok(loanOffers);
     }
 
+    @Override
     @PostMapping("/offer/select")
     public ResponseEntity<Void> selectLoanOffer(@Valid @RequestBody LoanOfferDto offer) {
         log.info("Received loan offer selection request: {}", offer);
@@ -42,6 +44,7 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok().build();
     }
 
+    @Override
     @PostMapping("/calculate/{statementId}")
     public ResponseEntity<Void> finishRegistration(@PathVariable String statementId, @Valid
                                                    @RequestBody FinishRegistrationRequestDto request)   {
