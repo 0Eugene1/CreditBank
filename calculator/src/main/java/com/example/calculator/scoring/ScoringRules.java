@@ -74,6 +74,12 @@ public class ScoringRules {
 
 
     public static BigDecimal applyGenderRule(GenderEnum gender, LocalDate birthDate, BigDecimal baseRate) {
+
+        if (birthDate == null) {
+            log.error("Birthdate cannot be null");
+            throw new IllegalArgumentException("Birthdate cannot be null");
+        }
+
         int age = Period.between(birthDate, LocalDate.now()).getYears();
         log.debug("Applying gender rule. Gender: {}, Age: {}", gender, age);
 
