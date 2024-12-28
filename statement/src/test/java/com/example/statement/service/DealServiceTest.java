@@ -24,9 +24,6 @@ public class DealServiceTest {
     @Mock
     private OfferClient statementClient;
 
-    @Mock
-    private OfferClient offerClient;
-
     @InjectMocks
     private DealService dealService;
 
@@ -76,6 +73,6 @@ public class DealServiceTest {
         dealService.selectOffer(loanOfferDto);
 
         // Проверка
-        verify(offerClient, times(1)).selectOffer(loanOfferDto);
+        verify(statementClient, times(1)).selectOffer(loanOfferDto);
     }
 }
