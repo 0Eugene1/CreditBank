@@ -34,8 +34,9 @@ public class LoanOfferDto {
     @Schema(description = "Ставка кредита", example = "10.0")
     @NotNull(message = "rate не должно быть нулевым")
     private BigDecimal rate;
-
-    private boolean isInsuranceEnabled;
-    private boolean isSalaryClient;
+    @NotNull(message = "Данные о страховке должны быть предоставлены")
+    private Boolean isInsuranceEnabled;
+    @NotNull(message = "Поле зарплатный клиент не должно быть нулевым")
+    private Boolean isSalaryClient;
 
 }

@@ -8,7 +8,7 @@ import com.example.deal.entity.Statement;
 import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.enums.ChangeType;
 import com.example.deal.exception.StatementNotFoundException;
-import com.example.deal.feignclient.CalculatorScoringClient;
+import com.example.deal.feignclient.CalculatorOffersClient;
 import com.example.deal.json.StatusHistory;
 import com.example.deal.mapper.CreditMapper;
 import com.example.deal.mapper.ScoringDataMapper;
@@ -33,7 +33,7 @@ public class FinishRegRequestService {
     private final StatementRepository statementRepository;
     private final CreditMapper creditMapper;
     private final StatusHistoryMapper statusHistoryMapper;
-    private final CalculatorScoringClient calculatorScoringClient;
+    private final CalculatorOffersClient calculatorScoringClient;
 
 
 

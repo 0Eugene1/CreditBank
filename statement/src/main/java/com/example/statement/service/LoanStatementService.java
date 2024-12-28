@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class LoanStatementService {
         log.info("Prescoring passed successfully for request: {}", requestDto);
 
         //Отправка в мс Deal
-        List<LoanOfferDto> loanOffers = new ArrayList<>(dealService.sendDealStatement(requestDto));
+        List<LoanOfferDto> loanOffers = dealService.sendDealStatement(requestDto);
         loanOffers.sort(Comparator.comparing(LoanOfferDto::getRate).reversed());
         log.info("Received loan offers: {}", loanOffers);
         return loanOffers;

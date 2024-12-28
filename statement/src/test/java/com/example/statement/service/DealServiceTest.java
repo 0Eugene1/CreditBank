@@ -3,7 +3,6 @@ package com.example.statement.service;
 import com.example.statement.dto.LoanOfferDto;
 import com.example.statement.dto.LoanStatementRequestDto;
 import com.example.statement.feignclient.OfferClient;
-import com.example.statement.feignclient.StatementClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.*;
 public class DealServiceTest {
 
     @Mock
-    private StatementClient statementClient;
+    private OfferClient statementClient;
 
     @Mock
     private OfferClient offerClient;

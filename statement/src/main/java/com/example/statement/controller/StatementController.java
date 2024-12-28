@@ -32,8 +32,9 @@ public class StatementController implements DealApi {
 
     @Override
     @PostMapping("/offer")
-    public void selectOneOffer(@Valid @RequestBody LoanOfferDto loanOffer) {
+    public ResponseEntity<Void> selectOneOffer(@Valid @RequestBody LoanOfferDto loanOffer) {
         dealService.selectOffer(loanOffer);
+        return ResponseEntity.ok().build();
     }
 
 }

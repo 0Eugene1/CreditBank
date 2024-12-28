@@ -20,10 +20,11 @@ public interface DealApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Успешное выполнение"),
             @ApiResponse(responseCode = "400", description = "Некорректные входные данные"),
+            @ApiResponse(responseCode = "404", description = "Предложение с указанным statementId не найдено"),
             @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
     })
     @PostMapping("/offer")
-    void selectOneOffer(@RequestBody LoanOfferDto loanOfferDto);
+    ResponseEntity<Void> selectOneOffer(@RequestBody LoanOfferDto loanOfferDto);
 
     @Operation(
             summary = "Прескоринг и расчёт возможных условий кредита",
