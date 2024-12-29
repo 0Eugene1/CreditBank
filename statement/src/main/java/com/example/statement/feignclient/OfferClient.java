@@ -11,10 +11,10 @@ import java.util.List;
 @FeignClient(name = "deal-service", url = "${deal.service.base-url}")
 public interface OfferClient {
 
-    @PostMapping("/offer/select")
+    @PostMapping("${deal.service.offer-select}")
     void selectOffer(@RequestBody LoanOfferDto offerDto);
 
-    @PostMapping("/statement")
+    @PostMapping("${deal.service.statement}")
     List<LoanOfferDto> calculateLoanOffers(@RequestBody LoanStatementRequestDto loanStatementRequestDto);
 }
 

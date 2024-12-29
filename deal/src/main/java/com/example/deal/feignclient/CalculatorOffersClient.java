@@ -13,9 +13,9 @@ import java.util.List;
 @FeignClient(name = "calculator-client", url = "${calculator.base-url}")
 public interface CalculatorOffersClient {
 
-    @PostMapping("/offers")
+    @PostMapping("${calculator.service-offers}")
     List<LoanOfferDto> getLoanOffers(@RequestBody LoanStatementRequestDto request);
 
-    @PostMapping("/calc")
+    @PostMapping("${calculator.service-calc}")
     CreditDto sendScoringData(@RequestBody ScoringDataDto scoringDataDto);
 }
