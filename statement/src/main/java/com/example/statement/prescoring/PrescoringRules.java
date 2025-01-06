@@ -1,4 +1,4 @@
-package com.example.calculator.prescoring;
+package com.example.statement.prescoring;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +14,6 @@ public class PrescoringRules {
 
     public static void validateName(String name) {
         if (!name.matches("^[A-Za-z]{2,30}$")) {
-            log.warn("Invalid name: {}", name);
             throw new IllegalArgumentException("Неверно указано имя: " + name);
         }
     }
@@ -52,11 +51,9 @@ public class PrescoringRules {
 
     public static void validatePassport(String passportSeries, String passportNumber) {
         if (passportSeries.length() != 4 || !passportSeries.matches("\\d{4}")) {
-            log.warn("Invalid passport series: {}", passportSeries);
             throw new IllegalArgumentException("Серия паспорта должна быть 4 символа: " + passportSeries);
         }
         if (passportNumber.length() != 6 || !passportNumber.matches("\\d{6}")) {
-            log.warn("Invalid passport number: {}", passportNumber);
             throw new IllegalArgumentException("Номер паспорта должен быть 6 символов: " + passportNumber);
         }
     }

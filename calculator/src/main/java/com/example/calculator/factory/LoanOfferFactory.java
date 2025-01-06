@@ -2,8 +2,6 @@ package com.example.calculator.factory;
 
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
-import com.example.calculator.service.PrescoringService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,8 +20,6 @@ public class LoanOfferFactory {
 
     @Value("${loan.base-rate:10.0}")
     private BigDecimal baseRate;
-    @Getter
-    private final PrescoringService prescoringService;
 
     public LoanOfferDto createOffer(LoanStatementRequestDto request, int term, boolean isInsuranceEnabled, boolean isSalaryClient) {
         log.info("Start creating an offer: term={}, isInsuranceEnabled={}, isSalaryClient={}", term, isInsuranceEnabled, isSalaryClient);
