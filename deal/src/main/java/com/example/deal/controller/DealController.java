@@ -3,9 +3,7 @@ package com.example.deal.controller;
 import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.dto.LoanStatementRequestDto;
-import com.example.deal.service.FinishRegRequestService;
-import com.example.deal.service.LoanOfferService;
-import com.example.deal.service.SelectOfferService;
+import com.example.deal.service.*;
 import com.example.deal.swagger.DealControllerApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +23,8 @@ public class DealController implements DealControllerApi {
     private final LoanOfferService loanOfferService;
     private final SelectOfferService selectOffersService;
     private final FinishRegRequestService finishRegRequestService;
+    private final DocumentService documentService;
+    private final OfferService offerService;
 
 
     @Override
@@ -53,5 +54,37 @@ public class DealController implements DealControllerApi {
         finishRegRequestService.finishRegistration(statementId, request);
         return ResponseEntity.ok().build();
     }
+    @PostMapping("/document/{statementId}/send")
+    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId) {
+        log.info("Запрос на отправку документов для statementId: {}", statementId);
+        documentService.sendDocuments(statementId);
+        return ResponseEntity.ok().build();
     }
+
+    @Override
+    @PostMapping("/document/{statementId}/sign")
+    public ResponseEntity<Void> signDocuments(@PathVariable UUID statementId) {
+        log.info("Запрос на подписание документов для statementId: {}", statementId);
+        documentService.signDocuments(statementId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    @PostMapping("/document/{statementId}/code")
+    public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId) {
+        log.info("Подписание документов кодом для statementId: {}", statementId);
+        documentService.confirmCode(statementId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    @PostMapping("/offer")
+    public ResponseEntity<Void> createOffer(@Valid @RequestBody LoanOfferDto offer) {
+        log.info("Создание оффера и отправка письма для: {}", offer);
+        offerService.processOffer(offer);
+        return ResponseEntity.ok().build();
+    }
+}
+
+
 
