@@ -1,7 +1,6 @@
 package com.example.dossier.service;
 
-
-import com.example.dossier.dto.EmailMessage;
+import com.example.deal.dto.EmailMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.EnableKafka;

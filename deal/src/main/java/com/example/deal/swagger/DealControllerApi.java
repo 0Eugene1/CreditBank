@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.UUID;
@@ -54,10 +55,11 @@ public interface DealControllerApi {
             @ApiResponse(responseCode = "404", description = "Statement not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
-    ResponseEntity<Void> sendDocuments(
-            @Parameter(description = "The unique identifier of the loan statement") UUID statementId);
+    ResponseEntity<Void> sendDocuments(@Parameter(description = "The unique identifier of the loan statement") UUID statementId,
+                                       @RequestBody String sesCode);
 
-    @Operation(summary = "Sign loan documents",
+
+@Operation(summary = "Sign loan documents",
             description = "Initiates the signing process for the loan documents by the client.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Documents ready for signing"),
@@ -81,14 +83,5 @@ public interface DealControllerApi {
     ResponseEntity<Void> confirmCode(
             @Parameter(description = "The unique identifier of the loan statement") UUID statementId);
 
-    @Operation(summary = "Create a loan offer and send email to the client",
-            description = "Creates a loan offer based on the provided data and sends a confirmation email to the client.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Loan offer created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid loan offer data",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
-    })
-    ResponseEntity<Void> createOffer(
-            @Parameter(description = "The loan offer details") LoanOfferDto offer);
 }
 

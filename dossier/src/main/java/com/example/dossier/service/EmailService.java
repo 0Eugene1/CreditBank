@@ -1,6 +1,7 @@
 package com.example.dossier.service;
 
-import com.example.dossier.dto.EmailMessage;
+import com.example.deal.dto.EmailMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -8,13 +9,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     public void sendEmail(EmailMessage emailMessage) {
         SimpleMailMessage message = new SimpleMailMessage();

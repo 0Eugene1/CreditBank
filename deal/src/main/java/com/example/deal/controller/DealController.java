@@ -8,6 +8,7 @@ import com.example.deal.swagger.DealControllerApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class DealController implements DealControllerApi {
     private final FinishRegRequestService finishRegRequestService;
     private final DocumentService documentService;
     private final OfferService offerService;
+    private final SesCodeService sesCodeService;
 
 
     @Override
@@ -54,10 +56,14 @@ public class DealController implements DealControllerApi {
         finishRegRequestService.finishRegistration(statementId, request);
         return ResponseEntity.ok().build();
     }
+
     @PostMapping("/document/{statementId}/send")
-    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId) {
+    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId, @RequestBody String sesCode) {
         log.info("Запрос на отправку документов для statementId: {}", statementId);
-        documentService.sendDocuments(statementId);
+        // Проверка кода через сервис
+        if (!sesCodeService.validateSesCode(statementId, sesCode)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();  // Неверный или устаревший код
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -74,14 +80,6 @@ public class DealController implements DealControllerApi {
     public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId) {
         log.info("Подписание документов кодом для statementId: {}", statementId);
         documentService.confirmCode(statementId);
-        return ResponseEntity.ok().build();
-    }
-
-    @Override
-    @PostMapping("/offer")
-    public ResponseEntity<Void> createOffer(@Valid @RequestBody LoanOfferDto offer) {
-        log.info("Создание оффера и отправка письма для: {}", offer);
-        offerService.processOffer(offer);
         return ResponseEntity.ok().build();
     }
 }

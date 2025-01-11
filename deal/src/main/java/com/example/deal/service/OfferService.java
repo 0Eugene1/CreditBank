@@ -20,12 +20,12 @@ public class OfferService {
         // Формируем сообщение
         EmailMessage emailMessage = EmailMessage.builder()
                 .address("client@example.com") // Адрес клиента
-                .theme(ThemeEnum.SIGN_DOCUMENTS)
+                .theme(ThemeEnum.SEND_DOCUMENTS)
                 .statementId(offer.getStatementId())
                 .text("Ваше предложение по кредиту создано.")
                 .build();
 
         // Отправка события в Kafka с объектом EmailMessage
-        kafkaProducerService.sendMessage("offer-created", emailMessage);
+        kafkaProducerService.sendMessage("finish-registration", emailMessage);
     }
 }
