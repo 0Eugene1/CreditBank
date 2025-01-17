@@ -10,7 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 import java.util.UUID;
@@ -55,33 +56,28 @@ public interface DealControllerApi {
             @ApiResponse(responseCode = "404", description = "Statement not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
-    ResponseEntity<Void> sendDocuments(@Parameter(description = "The unique identifier of the loan statement") UUID statementId,
-                                       @RequestBody String sesCode);
+    @PostMapping("/{statementId}/send")
+    ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId);
 
-
-@Operation(summary = "Sign loan documents",
-            description = "Initiates the signing process for the loan documents by the client.")
+    @Operation(summary = "Complete registration process by statement ID",
+            description = "Completes the registration process by statement ID.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Documents ready for signing"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data",
+            @ApiResponse(responseCode = "200", description = "Registration process completed"),
+            @ApiResponse(responseCode = "400", description = "Invalid statement ID or registration data",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))),
             @ApiResponse(responseCode = "404", description = "Statement not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
-    ResponseEntity<Void> signDocuments(
-            @Parameter(description = "The unique identifier of the loan statement") UUID statementId);
+    ResponseEntity<Void> signDocuments(@Parameter(description = "The unique identifier of the loan statement") UUID statementId);
 
-    @Operation(summary = "Confirm code for signing loan documents",
-            description = "Confirms the code for signing the loan documents.")
+    @Operation(summary = "Validate code for signing loan documents",
+            description = "Validates the code for signing the loan documents.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Code confirmed and documents signed"),
-            @ApiResponse(responseCode = "400", description = "Invalid code",
+            @ApiResponse(responseCode = "200", description = "Code validated and documents signed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid code or request data",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))),
             @ApiResponse(responseCode = "404", description = "Statement not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class)))
     })
-    ResponseEntity<Void> confirmCode(
-            @Parameter(description = "The unique identifier of the loan statement") UUID statementId);
-
+    ResponseEntity<Void> confirmCode(@Parameter(description = "The unique identifier of the loan statement") UUID statementId);
 }
-

@@ -3,12 +3,14 @@ package com.example.deal.controller;
 import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.dto.LoanStatementRequestDto;
-import com.example.deal.service.*;
+import com.example.deal.service.DocumentService;
+import com.example.deal.service.FinishRegRequestService;
+import com.example.deal.service.LoanOfferService;
+import com.example.deal.service.SelectOfferService;
 import com.example.deal.swagger.DealControllerApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,9 +27,6 @@ public class DealController implements DealControllerApi {
     private final SelectOfferService selectOffersService;
     private final FinishRegRequestService finishRegRequestService;
     private final DocumentService documentService;
-    private final OfferService offerService;
-    private final SesCodeService sesCodeService;
-
 
     @Override
     @PostMapping("/statement")
@@ -57,29 +56,26 @@ public class DealController implements DealControllerApi {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/document/{statementId}/send")
-    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId, @RequestBody String sesCode) {
+    @Override
+    @PostMapping("document/{statementId}/send")
+    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId) {
         log.info("Запрос на отправку документов для statementId: {}", statementId);
-        // Проверка кода через сервис
-        if (!sesCodeService.validateSesCode(statementId, sesCode)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();  // Неверный или устаревший код
-        }
+        documentService.sendDocuments(statementId);
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    @PostMapping("/document/{statementId}/sign")
+    @PostMapping("document/{statementId}/sign")
     public ResponseEntity<Void> signDocuments(@PathVariable UUID statementId) {
         log.info("Запрос на подписание документов для statementId: {}", statementId);
-        documentService.signDocuments(statementId);
+        documentService.generateAndSendSesCode(statementId);
         return ResponseEntity.ok().build();
     }
 
     @Override
-    @PostMapping("/document/{statementId}/code")
+    @PostMapping("document/{statementId}/code")
     public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId) {
         log.info("Подписание документов кодом для statementId: {}", statementId);
-        documentService.confirmCode(statementId);
+        documentService.validateAndCompleteSigning(statementId);
         return ResponseEntity.ok().build();
     }
 }

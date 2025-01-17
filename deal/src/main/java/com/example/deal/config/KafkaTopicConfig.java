@@ -25,7 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaTopicConfig {
 
-    @Value("localhost:9092")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServer;
 
     @Bean

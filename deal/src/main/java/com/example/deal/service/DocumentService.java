@@ -1,17 +1,16 @@
 package com.example.deal.service;
 
 import com.example.deal.dto.EmailMessage;
-import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.entity.Client;
+import com.example.deal.entity.Statement;
 import com.example.deal.enums.ThemeEnum;
 import com.example.deal.repository.ClientRepository;
+import com.example.deal.repository.StatementRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -19,110 +18,87 @@ import java.util.UUID;
 @Slf4j
 public class DocumentService {
 
+    private final DocumentGeneratorService documentGeneratorService;
     private final SesCodeService sesCodeService;
-    private final ClientRepository clientRepository;
+    private final ApplicationStatusService applicationStatusService;
     private final KafkaProducerService kafkaProducerService;
+    private final ClientRepository clientRepository;
+    private final StatementRepository statementRepository;
 
-    public void sendDocuments(UUID statementId, LoanOfferDto loanOffer) {
-        // Генерация содержимого документа
-        String documentContent = generateDocumentContent(statementId, loanOffer);
-
-        // Создание файла
-        File documentFile = createDocumentFile(documentContent, statementId);
-
-        // Поиск email client на основе statementId
-        Client client = clientRepository.findByStatements_StatementId(statementId)
-                .orElseThrow(() -> new RuntimeException("Клиент не найден для statementId: " + statementId));
-
-        // Генерация уникального ses-code и сохранение его в бд
-        String sesCode = sesCodeService.generateSesCode(statementId);
-
-        try {
-            // Отправка письма
-            EmailMessage emailMessage = EmailMessage.builder()
-                    .address(client.getEmail()) // Реальный адрес клиента
-                    .theme(ThemeEnum.SEND_DOCUMENTS)
-                    .statementId(statementId)
-                    .text("Документы по вашему запросу отправлены: " + sesCode)
-                    .build();
-
-            kafkaProducerService.sendMessage("send-documents", emailMessage);
-            log.info("Документы отправлены для statementId: {}", statementId);
-        } finally {
-            // Удаление временного файла после отправки
-            if (documentFile.exists()) {
-                documentFile.delete();
-            }
-        }
+    // Получение клиента по statementId
+    private Client getClientByStatementId(UUID statementId) {
+        return clientRepository.findByStatements_StatementId(statementId)
+                .orElseThrow(() -> new EntityNotFoundException("Client not found for statementId: " + statementId));
     }
 
-    private String generateDocumentContent(UUID statementId, LoanOfferDto loanOffer) {
-        return String.format("""
-            Кредитный договор
-            -------------------
-            Идентификатор заявления: %s
-            Запрошенная сумма: %s
-            Общая сумма: %s
-            Срок кредита: %s месяцев
-            Ежемесячный платёж: %s
-            Ставка: %s%%
-            Страховка: %s
-            Зарплатный клиент: %s
-            """,
-                statementId,
-                loanOffer.getRequestedAmount(),
-                loanOffer.getTotalAmount(),
-                loanOffer.getTerm(),
-                loanOffer.getMonthlyPayment(),
-                loanOffer.getRate(),
-                loanOffer.getInsuranceEnabled() ? "Да" : "Нет",
-                loanOffer.getSalaryClient() ? "Да" : "Нет");
-    }
-    private File createDocumentFile(String content, UUID statementId) {
-        try {
-            File tempFile = File.createTempFile("loan-document-" + statementId, ".txt");
-            try (FileWriter writer = new FileWriter(tempFile)) {
-                writer.write(content);
-            }
-            return tempFile;
-        } catch (IOException e) {
-            throw new RuntimeException("Ошибка при создании документа: " + e.getMessage(), e);
-        }
+    // Отправка документов
+    public void sendDocuments(UUID statementId) {
+        log.info("Отправка документов для statementId {}", statementId);
+
+        // Сообщение о создании документов
+        documentGeneratorService.notifyDocumentCreation(statementId);
+
+        // Генерация и отправка документов
+        documentGeneratorService.sendDocuments(statementId);
     }
 
-    public void signDocuments(UUID statementId) {
-        log.info("Документы для statementId {} готовы к подписанию.", statementId);
+    // Генерация и отправка SES-кода
+    public String generateAndSendSesCode(UUID statementId) {
+        log.info("Генерация и отправка SES-кода для statementId {}", statementId);
 
-        // Поиск email client на основе statementId
-        Client client = clientRepository.findByStatements_StatementId(statementId)
-                .orElseThrow(() -> new RuntimeException("Клиент не найден для statementId: " + statementId));
+        // Генерация и отправка SES-кода
+        return sesCodeService.generateAndSendSesCode(statementId);
+    }
 
+    public void validateAndCompleteSigning(UUID statementId) {
+        log.info("Проверка SES-кода для statementId {}", statementId);
+
+        // Извлечение SES-кода из Statement
+        Statement statement = statementRepository.findById(statementId)
+                .orElseThrow(() -> new EntityNotFoundException("Statement not found for ID: " + statementId));
+        String sesCode = statement.getSesCode();
+
+        // Проверка SES-кода
+        sesCodeService.validateSesCode(statementId, sesCode);
+
+        // Обновление статуса на CREDIT_ISSUED
+        applicationStatusService.updateStatusToCreditIssued(statementId);
+
+        Client client = getClientByStatementId(statementId);
+
+        // Создаем сообщение для топика credit-issued
         EmailMessage message = EmailMessage.builder()
                 .address(client.getEmail())
-                .theme(ThemeEnum.SIGN_DOCUMENTS)
+                .theme(ThemeEnum.CREDIT_ISSUED)
                 .statementId(statementId)
-                .text("Пожалуйста, подпишите ваши документы по ссылке.")
+                .text("Кредит выдан для statementId: " + statementId)
                 .build();
 
-        kafkaProducerService.sendMessage("send-ses", message);
-        log.info("Сообщение о подписании документов отправлено в Kafka для statementId: {}", statementId);
-    }
-
-    public void confirmCode(UUID statementId) {
-        log.info("Код подтверждения документов для statementId {} проверен.", statementId);
-
-        // Поиск email client на основе statementId
-        Client client = clientRepository.findByStatements_StatementId(statementId)
-                .orElseThrow(() -> new RuntimeException("Клиент не найден для statementId: " + statementId));
-
-        EmailMessage message = EmailMessage.builder()
-                .address(client.getEmail())
-                .theme(ThemeEnum.SEND_DOCUMENTS)
-                .statementId(statementId)
-                .text("Ваши документы успешно подписаны!")
-                .build();
-
+        // Отправка сообщения в топик credit-issued
         kafkaProducerService.sendMessage("credit-issued", message);
-        log.info("Уведомление о завершении подписания документов отправлено в Kafka для statementId: {}", statementId);
+        log.info("Сообщение о выдаче кредита отправлено в топик credit-issued для statementId {}", statementId);
+    }
+
+
+    // Завершение регистрации
+    public void finishRegistration(UUID statementId) {
+        log.info("Завершение регистрации для statementId {}", statementId);
+
+        // Завершаем регистрацию
+        applicationStatusService.updateStatusToFinishRegistration(statementId);
+
+        Client client = getClientByStatementId(statementId);
+
+        // Формируем сообщение для топика finish-registration
+        EmailMessage finishRegistrationMessage = EmailMessage.builder()
+                .address(client.getEmail())
+                .theme(ThemeEnum.FINISH_REGISTRATION)
+                .statementId(statementId)
+                .text("Регистрация завершена для statementId: " + statementId)
+                .build();
+
+        // Отправляем сообщение в топик finish-registration
+        kafkaProducerService.sendMessage("finish-registration", finishRegistrationMessage);
+        log.info("Сообщение о завершении регистрации отправлено в топик finish-registration для statementId {}", statementId);
     }
 }
