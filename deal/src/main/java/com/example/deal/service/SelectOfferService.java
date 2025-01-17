@@ -63,17 +63,18 @@ public class SelectOfferService {
         log.info("Loan offer selected and statement updated: {}", statement);
 
         // Вызываем обработку оффера
-        processOffer(offer);
+        sendOfferMessageToKafka(offer);
+
+        // Завершение регистрации
+        sendFinishRegistrationMessage(statement);
 
     }
 
-    public void processOffer(LoanOfferDto offer) {
-        log.info("Обработка оффера: {}", offer);
+    private void sendOfferMessageToKafka(LoanOfferDto offer) {
 
         Client client = clientRepository.findByStatements_StatementId(offer.getStatementId())
                 .orElseThrow(() -> new EntityNotFoundException("Client not found for statementId: " + offer.getStatementId()));
 
-        // Формируем сообщение
         EmailMessage emailMessage = EmailMessage.builder()
                 .address(client.getEmail())
                 .theme(ThemeEnum.CREATE_DOCUMENTS)
@@ -81,9 +82,10 @@ public class SelectOfferService {
                 .text("Ваше предложение по кредиту создано.")
                 .build();
 
-        // Отправка события в Kafka с объектом EmailMessage
         kafkaProducerService.sendMessage("create-documents", emailMessage);
+        log.info("Сообщение отправлено в Kafka для statementId: {}", offer.getStatementId());
     }
+
 
     private void sendFinishRegistrationMessage(Statement statement) {
         // Формирование сообщения для отправки в Kafka

@@ -3,6 +3,7 @@ package com.example.deal.controller;
 import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.dto.LoanStatementRequestDto;
+import com.example.deal.dto.SesCodeDTO;
 import com.example.deal.service.DocumentService;
 import com.example.deal.service.FinishRegRequestService;
 import com.example.deal.service.LoanOfferService;
@@ -73,9 +74,10 @@ public class DealController implements DealControllerApi {
 
     @Override
     @PostMapping("document/{statementId}/code")
-    public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId) {
+    public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,
+                                            @RequestBody @Valid SesCodeDTO sesCodeDTO) {
         log.info("Подписание документов кодом для statementId: {}", statementId);
-        documentService.validateAndCompleteSigning(statementId);
+        documentService.validateAndCompleteSigning(statementId, sesCodeDTO.getSesCode());
         return ResponseEntity.ok().build();
     }
 }

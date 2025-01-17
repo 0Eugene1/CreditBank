@@ -3,6 +3,7 @@ package com.example.deal.service;
 import com.example.deal.dto.EmailMessage;
 import com.example.deal.entity.Client;
 import com.example.deal.entity.Statement;
+import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.enums.ThemeEnum;
 import com.example.deal.repository.ClientRepository;
 import com.example.deal.repository.StatementRepository;
@@ -50,19 +51,17 @@ public class DocumentService {
         return sesCodeService.generateAndSendSesCode(statementId);
     }
 
-    public void validateAndCompleteSigning(UUID statementId) {
+    public void validateAndCompleteSigning(UUID statementId, String sesCode) {
         log.info("Проверка SES-кода для statementId {}", statementId);
 
-        // Извлечение SES-кода из Statement
+        // Получение Statement по ID
         Statement statement = statementRepository.findById(statementId)
                 .orElseThrow(() -> new EntityNotFoundException("Statement not found for ID: " + statementId));
-        String sesCode = statement.getSesCode();
 
-        // Проверка SES-кода
-        sesCodeService.validateSesCode(statementId, sesCode);
+        String storedSesCode = statement.getSesCode();
 
         // Обновление статуса на CREDIT_ISSUED
-        applicationStatusService.updateStatusToCreditIssued(statementId);
+        applicationStatusService.updateStatus(statementId, ApplicationStatus.CREDIT_ISSUED);
 
         Client client = getClientByStatementId(statementId);
 
@@ -77,28 +76,5 @@ public class DocumentService {
         // Отправка сообщения в топик credit-issued
         kafkaProducerService.sendMessage("credit-issued", message);
         log.info("Сообщение о выдаче кредита отправлено в топик credit-issued для statementId {}", statementId);
-    }
-
-
-    // Завершение регистрации
-    public void finishRegistration(UUID statementId) {
-        log.info("Завершение регистрации для statementId {}", statementId);
-
-        // Завершаем регистрацию
-        applicationStatusService.updateStatusToFinishRegistration(statementId);
-
-        Client client = getClientByStatementId(statementId);
-
-        // Формируем сообщение для топика finish-registration
-        EmailMessage finishRegistrationMessage = EmailMessage.builder()
-                .address(client.getEmail())
-                .theme(ThemeEnum.FINISH_REGISTRATION)
-                .statementId(statementId)
-                .text("Регистрация завершена для statementId: " + statementId)
-                .build();
-
-        // Отправляем сообщение в топик finish-registration
-        kafkaProducerService.sendMessage("finish-registration", finishRegistrationMessage);
-        log.info("Сообщение о завершении регистрации отправлено в топик finish-registration для statementId {}", statementId);
     }
 }

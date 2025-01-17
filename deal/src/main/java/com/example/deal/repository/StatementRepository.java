@@ -11,5 +11,4 @@ import java.util.UUID;
 @Repository
 public interface StatementRepository extends JpaRepository<Statement, UUID> {
     Optional<Statement> findById(@NotNull UUID statementId);
-    Optional<Statement> findBySesCode(String sesCode);
 }

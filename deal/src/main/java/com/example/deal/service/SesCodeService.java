@@ -51,16 +51,28 @@ public class SesCodeService {
     }
 
     public void validateSesCode(UUID statementId, String sesCode) {
-        log.info("Проверка SES-кода для statementId {}", statementId);
         Statement statement = statementRepository.findById(statementId)
                 .orElseThrow(() -> new EntityNotFoundException("Statement not found for ID: " + statementId));
 
+        // Если коды не совпадают, выбрасываем исключение и отправляем сообщение в топик statement-denied
         if (!sesCode.equals(statement.getSesCode())) {
+
+            Client client = statement.getClient();
+            EmailMessage message = EmailMessage.builder()
+                    .address(client.getEmail())
+                    .theme(ThemeEnum.STATEMENT_DENIED)
+                    .statementId(statementId)
+                    .text("Код подписания не совпадает для заявка: " + statementId)
+                    .build();
+
+            // Отправляем сообщение в топик statement-denied
+            kafkaProducerService.sendMessage("statement-denied", message);
+            log.info("Сообщение о невалидном SES-коде отправлено в топик statement-denied для statementId {}", statementId);
+
             throw new IllegalArgumentException("Код подписания не совпадает!");
         }
-
-        log.info("SES-код для statementId {} успешно проверен.", statementId);
     }
+
 
     private String generateSesCode() {
         int code = (int) (Math.random() * 900000) + 100000;
