@@ -32,7 +32,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-
     // Обработка других исключений
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
@@ -56,14 +55,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
-        log.error("Runtime exception: {}", ex.getMessage(), ex); // Логирование
+        log.error("Runtime exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<ErrorResponse> handleJsonProcessingException(JsonProcessingException e) {
         ErrorResponse errorResponse = new ErrorResponse("Ошибка обработки JSON", e.getMessage());
-        log.error("JSON processing error: {}", e.getMessage(), e); // Логирование
+        log.error("JSON processing error: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 

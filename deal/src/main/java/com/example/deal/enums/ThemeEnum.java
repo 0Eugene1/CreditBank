@@ -1,0 +1,5 @@
+package com.example.deal.enums;
+
+public enum ThemeEnum {
+    CREDIT_ISSUED, CREATE_DOCUMENTS, SEND_DOCUMENTS, SEND_SES, STATEMENT_DENIED, FINISH_REGISTRATION
+}
