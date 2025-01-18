@@ -35,8 +35,6 @@ public class FinishRegRequestService {
     private final StatusHistoryMapper statusHistoryMapper;
     private final CalculatorOffersClient calculatorScoringClient;
 
-
-
     @Transactional
     public void finishRegistration(String statementId, FinishRegistrationRequestDto registrationRequest) {
         log.info("Starting finishRegistration for statementId: {}, with request: {}", statementId, registrationRequest);
@@ -57,47 +55,37 @@ public class FinishRegRequestService {
         // Используем маппер для создания объекта ScoringDataDto
         ScoringDataDto scoringData = ScoringDataMapper.toScoringDataDto(registrationRequest, statement);
 
-        // 3. Отправить ScoringDataDto в кредитный конвейер и получить CreditDto
-        CreditDto creditDto = calculatorScoringClient.sendScoringData(scoringData);  // Прямой вызов клиента
+        CreditDto creditDto = calculatorScoringClient.sendScoringData(scoringData);
 
-        // 4. Создать сущность Credit и сохранить в базу
         Credit credit = creditMapper.creditToEntity(creditDto);
-        Credit savedCredit = creditRepository.save(credit);
+        creditRepository.save(credit);
 
-        log.info("Credit entity saved: {}", savedCredit);
+        log.info("Credit entity saved: {}", credit);
 
-        // 5. Обновить статус Statement
-        statement.setStatus(ApplicationStatus.PREAPPROVAL);
-        updateStatusHistory(statement);
+        updateStatusHistory(statement, ApplicationStatus.PREAPPROVAL);
 
-        // 6. Сохранить Credit и Statement
-        statement.setCredit(savedCredit);
-        statementRepository.save(statement);
+        statement.setCredit(credit);
         log.info("Statement updated and saved with new credit: {}", statement);
     }
 
-    private void updateStatusHistory(Statement statement) {
+    private void updateStatusHistory(Statement statement, ApplicationStatus newStatus) {
         log.info("Updating status history for statement: {}", statement);
 
-        // Получаем текущую историю статусов (если существует)
-        List<StatusHistory> statusList = statement.getStatusHistory();
-        if (statusList == null) {
-            statusList = new ArrayList<>();
-        }
+        // Получаем текущую историю статусов или создаем новую
+        List<StatusHistory> statusList = statement.getStatusHistory() != null
+                ? new ArrayList<>(statement.getStatusHistory())
+                : new ArrayList<>();
 
         // Используем StatusHistoryMapper для создания нового статуса
-        StatusHistory newStatus = statusHistoryMapper.toEntity(ApplicationStatus.PREAPPROVAL, ChangeType.AUTOMATIC);
+        StatusHistory statusHistory = statusHistoryMapper.toEntity(newStatus, ChangeType.AUTOMATIC);
 
-        // Добавляем новый статус в историю
-        statusList.add(newStatus);
+        // Добавляем новый статус
+        statusList.add(statusHistory);
 
-        // Обновляем history и статус заявки
-        statement.setStatusHistory(statusList); // Обновляем историю статусов
-        statement.setStatus(ApplicationStatus.PREAPPROVAL); // Обновляем статус заявки
+        // Обновляем статус и историю
+        statement.setStatus(newStatus);
+        statement.setStatusHistory(statusList);
 
-        // Сохраняем обновленную заявку
-        statementRepository.save(statement);
-
-        log.info("Updated status history and status for statement {}: {}", statement, statusList);
+        log.info("Status history updated for statement {}: {}", statement.getStatementId(), statusList);
     }
 }

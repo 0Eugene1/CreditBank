@@ -77,7 +77,7 @@ public class DealController implements DealControllerApi {
     public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,
                                             @RequestBody @Valid SesCodeDTO sesCodeDTO) {
         log.info("Подписание документов кодом для statementId: {}", statementId);
-        documentService.validateAndCompleteSigning(statementId, sesCodeDTO.getSesCode());
+        documentService.validateSesCodeAndIssueCredit(statementId, sesCodeDTO.getSesCode());
         return ResponseEntity.ok().build();
     }
 }
