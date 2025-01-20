@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +39,6 @@ public class SesCodeService {
                 .text("SES код " + sesCode + " отправлен для statementId: " + statement.getStatementId())
                 .build();
 
-        applicationStatusService.updateStatus(statement.getStatementId(), ApplicationStatus.APPROVED, ChangeType.AUTOMATIC);
         kafkaProducerService.sendMessage("send-ses", sesMessage);
         log.info("SES-код отправлен клиенту с email: {}", statement.getClient().getEmail());
 
@@ -57,11 +58,13 @@ public class SesCodeService {
                     .text("Код подписания не совпадает для заявка: " + statement.getStatementId())
                     .build();
 
-            applicationStatusService.updateStatus(statement.getStatementId(), ApplicationStatus.CLIENT_DENIED, ChangeType.AUTOMATIC);
             kafkaProducerService.sendMessage("statement-denied", message);
 
             throw new IllegalArgumentException("Код подписания не совпадает!");
         }
+        // Успешная валидация: обновляем статус на APPROVED
+        statement.setSignDate(LocalDateTime.now());
+        applicationStatusService.updateStatus(statement.getStatementId(), ApplicationStatus.APPROVED, ChangeType.AUTOMATIC);
     }
 
     private String generateSesCode() {

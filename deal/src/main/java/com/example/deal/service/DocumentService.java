@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -37,8 +36,6 @@ public class DocumentService {
         Statement statement = statementRepository.findById(statementId)
                 .orElseThrow(() -> new EntityNotFoundException("Statement not found for ID: " + statementId));
 
-        statement.setSignDate(LocalDateTime.now());
-        statementRepository.save(statement);
 
         return sesCodeService.generateAndSendSesCode(statement);
     }
