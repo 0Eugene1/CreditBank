@@ -3,6 +3,8 @@ package com.example.deal.controller;
 import com.example.deal.dto.FinishRegistrationRequestDto;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.dto.LoanStatementRequestDto;
+import com.example.deal.dto.SesCodeDTO;
+import com.example.deal.service.DocumentService;
 import com.example.deal.service.FinishRegRequestService;
 import com.example.deal.service.LoanOfferService;
 import com.example.deal.service.SelectOfferService;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class DealController implements DealControllerApi {
     private final LoanOfferService loanOfferService;
     private final SelectOfferService selectOffersService;
     private final FinishRegRequestService finishRegRequestService;
-
+    private final DocumentService documentService;
 
     @Override
     @PostMapping("/statement")
@@ -53,5 +56,31 @@ public class DealController implements DealControllerApi {
         finishRegRequestService.finishRegistration(statementId, request);
         return ResponseEntity.ok().build();
     }
+
+    @Override
+    @PostMapping("document/{statementId}/send")
+    public ResponseEntity<Void> sendDocuments(@PathVariable UUID statementId) {
+        log.info("Запрос на отправку документов для statementId: {}", statementId);
+        documentService.sendDocuments(statementId);
+        return ResponseEntity.ok().build();
     }
+
+    @PostMapping("document/{statementId}/sign")
+    public ResponseEntity<Void> signDocuments(@PathVariable UUID statementId) {
+        log.info("Запрос на подписание документов для statementId: {}", statementId);
+        documentService.generateAndSendSesCode(statementId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    @PostMapping("document/{statementId}/code")
+    public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,
+                                            @RequestBody @Valid SesCodeDTO sesCodeDTO) {
+        log.info("Подписание документов кодом для statementId: {}", statementId);
+        documentService.validateSesCodeAndIssueCredit(statementId, sesCodeDTO.getSesCode());
+        return ResponseEntity.ok().build();
+    }
+}
+
+
 
