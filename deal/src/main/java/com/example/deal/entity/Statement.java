@@ -3,6 +3,8 @@ package com.example.deal.entity;
 import com.example.deal.dto.LoanOfferDto;
 import com.example.deal.enums.ApplicationStatus;
 import com.example.deal.json.StatusHistory;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -25,12 +27,15 @@ public class Statement {
     @Column(columnDefinition = "UUID", nullable = false, updatable = false)
     private UUID statementId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
+    @JsonIgnore
+    @JsonBackReference
     private Client client;
 
     @ManyToOne
     @JoinColumn(name = "credit_id", nullable = false)
+    @JsonBackReference
     private Credit credit;
 
     @Enumerated(EnumType.STRING)
@@ -47,6 +52,6 @@ public class Statement {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
+    @JsonBackReference
     private List<StatusHistory> statusHistory;
-
 }

@@ -1,13 +1,9 @@
 package com.example.deal.controller;
 
-import com.example.deal.dto.FinishRegistrationRequestDto;
-import com.example.deal.dto.LoanOfferDto;
-import com.example.deal.dto.LoanStatementRequestDto;
-import com.example.deal.dto.SesCodeDTO;
-import com.example.deal.service.DocumentService;
-import com.example.deal.service.FinishRegRequestService;
-import com.example.deal.service.LoanOfferService;
-import com.example.deal.service.SelectOfferService;
+import com.example.deal.dto.*;
+import com.example.deal.entity.Statement;
+import com.example.deal.mapper.StatementMapper;
+import com.example.deal.service.*;
 import com.example.deal.swagger.DealControllerApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +24,8 @@ public class DealController implements DealControllerApi {
     private final SelectOfferService selectOffersService;
     private final FinishRegRequestService finishRegRequestService;
     private final DocumentService documentService;
+    private final StatementService statementService;
+    private final StatementMapper statementMapper;
 
     @Override
     @PostMapping("/statement")
@@ -79,6 +77,18 @@ public class DealController implements DealControllerApi {
         log.info("Подписание документов кодом для statementId: {}", statementId);
         documentService.validateSesCodeAndIssueCredit(statementId, sesCodeDTO.getSesCode());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/admin/statement/{statementId}")
+    public ResponseEntity<Statement> getStatementById(@PathVariable UUID statementId) {
+        Statement statement = statementService.getStatementById(statementId);
+        return ResponseEntity.ok(statement);
+    }
+
+    @GetMapping("/admin/statement")
+    public ResponseEntity<List<Statement>> getAllStatements() {
+        List<Statement> statements = statementService.getAllStatements();
+        return ResponseEntity.ok(statements);
     }
 }
 

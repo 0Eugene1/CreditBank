@@ -4,6 +4,7 @@ import com.example.deal.enums.Gender;
 import com.example.deal.enums.MaritalStatus;
 import com.example.deal.json.Employment;
 import com.example.deal.json.Passport;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -51,15 +52,13 @@ public class Client {
     @NotNull(message = "Паспорт не должен быть пустым")
     private Passport passport;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "employment_id")
     private Employment employment;
 
     private String accountNumber;
 
     @OneToMany(mappedBy = "client")
+    @JsonBackReference
     private List<Statement> statements; // Обратная связь
 }
-
-
-
