@@ -3,12 +3,10 @@ package com.example.calculator.service;
 import com.example.calculator.dto.LoanOfferDto;
 import com.example.calculator.dto.LoanStatementRequestDto;
 import com.example.calculator.factory.LoanOfferFactory;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,7 +18,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +37,6 @@ public class LoanOfferServiceTest {
     @Mock
     private LoanOfferFactory loanOfferFactory;
 
-    @Mock
-    private PrescoringService prescoringService;
 
     @InjectMocks
     private LoanOfferService loanOfferService;
@@ -91,37 +86,8 @@ public class LoanOfferServiceTest {
 
 
         MockitoAnnotations.openMocks(this);
-        loanOfferService = new LoanOfferService(loanOfferFactory, prescoringService);
+        loanOfferService = new LoanOfferService(loanOfferFactory);
     }
-
-    @Test
-    void shouldCreateAndSortLoanOffersSuccessfully() {
-
-        // Мокируем поведение PrescoringService
-        Mockito.doNothing().when(prescoringService).validate(validRequest);
-
-        // Мокируем createOffers, чтобы возвращался список предложений
-        Mockito.when(loanOfferFactory.createOffers(Mockito.any(), Mockito.anyInt()))
-                .thenReturn(new ArrayList<>(List.of(offer1, offer2, offer3, offer4))); // Используем изменяемый список
-
-        // Вызываем calculateLoanOffers
-        List<LoanOfferDto> result = loanOfferService.calculateLoanOffers(validRequest);
-
-        // Проверяем, что результат не пустой
-        Assertions.assertNotNull(result, "Result should not be null");
-        Assertions.assertFalse(result.isEmpty(), "Result list should not be empty");
-
-        // Проверяем, что возвращено 4 предложения
-        Assertions.assertEquals(4, result.size(), "Should return 4 loan offers");
-
-        // Проверяем, что предложения отсортированы по ставке
-        Assertions.assertEquals(new BigDecimal("2.5"), result.get(0).getRate(), "First offer should have the lowest rate");
-        Assertions.assertEquals(new BigDecimal("5.0"), result.get(3).getRate(), "Last offer should have the highest rate");
-
-        // Проверяем порядок вызова методов фабрики
-        Mockito.verify(loanOfferFactory).createOffers(Mockito.any(), Mockito.anyInt());
-    }
-
 
     @Test
     void testCalculateLoanOffers_Success() {

@@ -1,0 +1,76 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: database
+    environment:
+      POSTGRES_DB: deal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 5117
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+
+  calculator:
+    build:
+      context: "/Users/eugene/IdeaProjects/CreditBank/calculator"
+    ports:
+      - "7071:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      - app-network
+
+  deal:
+    build:
+      context: "/Users/eugene/IdeaProjects/CreditBank/deal"
+    ports:
+      - "7072:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/deal
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 5117
+    depends_on:
+      - calculator
+    networks:
+      - app-network
+
+  dossier:
+    build:
+      context: "/Users/eugene/IdeaProjects/CreditBank/dossier"
+    ports:
+      - "7073:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - deal
+    networks:
+      - app-network
+
+  gateway:
+    build:
+      context: "/Users/eugene/IdeaProjects/CreditBank/gateway"
+    ports:
+      - "7074:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - deal
+    networks:
+      - app-network
+
+  statement:
+    build:
+      context: "/Users/eugene/IdeaProjects/CreditBank/statement"
+    ports:
+      - "7075:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - deal
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

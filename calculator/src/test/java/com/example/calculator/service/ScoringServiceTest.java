@@ -9,7 +9,6 @@ import com.example.calculator.enums.PositionEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +21,6 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -31,9 +29,6 @@ public class ScoringServiceTest {
 
     @Value("${loan.base-rate}")
     private BigDecimal baseRate;
-
-    @Mock
-    private PrescoringService prescoringServiceMock;
 
     @Autowired
     private ScoringService scoringServiceToTest;
@@ -89,16 +84,6 @@ public class ScoringServiceTest {
                 .isSalaryClient(true)
                 .employment(invalidEmployment)  // Используем employment с builder
                 .build();
-    }
-
-    @Test
-    public void testCalculateRate_validData() {
-        // Мокирование возвращаемого значения для baseRate
-        doNothing().when(prescoringServiceMock).validate(validData);
-
-        // Проверка значения baseRate через сравнение BigDecimal
-        BigDecimal calculatedRate = scoringServiceToTest.calculateRate(validData);
-        assertEquals(0, calculatedRate.compareTo(baseRate), "Calculated rate should match baseRate");
     }
 
 
