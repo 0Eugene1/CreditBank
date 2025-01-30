@@ -17,7 +17,6 @@ public class LoanOfferService {
 
 
     private final LoanOfferFactory loanOfferFactory;
-    private final PrescoringService prescoringService;
 
     public List<LoanOfferDto> calculateLoanOffers(LoanStatementRequestDto request) {
         log.debug("Received loan statement request: {}", request);

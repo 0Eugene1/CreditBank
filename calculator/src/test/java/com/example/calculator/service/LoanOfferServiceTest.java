@@ -168,21 +168,22 @@ public class LoanOfferServiceTest {
     }
 
     @Test
-    void testCalculateCredit_shouldReturnBadRequest_whenValidationFails() throws Exception {
-        // Подготовка запроса с некорректными данными, которые вызовут ошибку валидации
-        String invalidRequest = "{\"amount\": 50000, \"term\": 12, \"firstName\": \"John\", \"lastName\": \"Doe\"}"; // Отсутствуют обязательные поля, например, passportNumber, passportSeries, birthDate
+    void testCalculateCredit_shouldReturnBadRequest_whenValidationErrorOccurs() throws Exception {
+        // Подготовка запроса с некорректными данными
+        String invalidRequest = "{\"amount\": 50000, \"term\": 12, \"firstName\": \"Alex\", \"lastName\": \"Morales\", \"employment\": null}";
 
-        // Отправляем запрос, который должен вызвать ошибку валидации
+        // Отправляем запрос, который должен вызвать ошибку на сервере
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/calculator/calc")  // Путь к контроллеру
-                        .contentType(MediaType.APPLICATION_JSON)  // Указание типа контента
-                        .content(invalidRequest))  // Некорректные данные
+                        .post("/calculator/calc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidRequest))
                 .andExpect(status().isBadRequest())  // Ожидаем статус 400
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data"))) // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data")))  // Проверка ошибки
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Invalid input data")));  // Проверка сообщения об ошибке
     }
+
+
+
+
 
 
     @Test

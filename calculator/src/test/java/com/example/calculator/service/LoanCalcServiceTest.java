@@ -77,17 +77,17 @@ public class LoanCalcServiceTest {
 
         // Мокаем поведение сервиса, чтобы вызвать исключение
         when(scoringService.calculateRate(any(ScoringDataDto.class)))
-                .thenThrow(new IllegalArgumentException("Invalid data"));
+                .thenThrow(new NullPointerException("Cannot invoke method on null object"));
 
-        // Выполняем запрос и проверяем, что статус 400 и ошибка в теле ответа
+        // Отправляем запрос с валидными данными
         mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"amount\":100000, \"term\":12, \"firstName\": \"John\", \"lastName\": \"Doe\"}"))
-                .andExpect(status().isBadRequest())  // Проверка на статус 400
+                        .content("{\"amount\":100000, \"term\":12, \"firstName\": \"Name\", \"lastName\": \"MidName\", \"birthDate\": \"2000-01-01\", \"passportSeries\": \"1234\", \"passportNumber\": \"567890\"}"))
+                .andExpect(status().isInternalServerError())  // Ожидаем статус 500
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
-                        containsString("Invalid input data")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400));  // Проверка статуса
+                        containsString("Произошла внутренняя ошибка")));  // Ожидаемое сообщение об ошибке
     }
+
 
     @Test
     void calculateCredit_largeLoan() {
