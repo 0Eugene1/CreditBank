@@ -54,5 +54,4 @@ public class Statement {
     @Column(columnDefinition = "jsonb")
     @JsonBackReference
     private List<StatusHistory> statusHistory;
-
 }

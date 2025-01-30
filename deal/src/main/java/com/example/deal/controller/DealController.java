@@ -27,7 +27,6 @@ public class DealController implements DealControllerApi {
     private final StatementService statementService;
     private final StatementMapper statementMapper;
 
-
     @Override
     @PostMapping("/statement")
     public ResponseEntity<List<LoanOfferDto>> calculateLoanOffers(@Valid @RequestBody LoanStatementRequestDto request) {

@@ -1,6 +1,9 @@
 package com.example.deal.swagger;
 
-import com.example.deal.dto.*;
+import com.example.deal.dto.FinishRegistrationRequestDto;
+import com.example.deal.dto.LoanOfferDto;
+import com.example.deal.dto.LoanStatementRequestDto;
+import com.example.deal.dto.SesCodeDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

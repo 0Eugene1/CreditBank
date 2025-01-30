@@ -62,6 +62,3 @@ public class Client {
     @JsonBackReference
     private List<Statement> statements; // Обратная связь
 }
-
-
-
