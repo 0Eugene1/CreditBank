@@ -32,6 +32,8 @@
 		<jakarta.api.version>3.0.2</jakarta.api.version>
 		<springdoc.openapi.version>2.2.0</springdoc.openapi.version>
 		<springboot.logging.version>3.3.6</springboot.logging.version>
+		<sonar.organization>0eugene1</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -89,19 +91,39 @@
 
 	<build>
 		<plugins>
+			<!-- Плагин для компиляции -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
+					<!-- Конфигурация для компиляции (оставьте пустой, если не требуется) -->
 				</configuration>
 			</plugin>
+
+			<!-- Плагин для Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- Конфигурация для Spring Boot (оставьте пустой, если не требуется) -->
 				</configuration>
 			</plugin>
+
+			<!-- Плагин Jacoco для покрытия тестами -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal> <!-- Добавляет агент Jacoco для сбора данных о покрытии -->
+							<goal>report</goal> <!-- Генерирует отчет о покрытии -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
-
 </project>

@@ -18,6 +18,8 @@
 		<swagger.annotation.version>2.2.26</swagger.annotation.version>
 		<spring.cloud.starter.version>4.1.3</spring.cloud.starter.version>
 		<spring.validation.version>3.3.3</spring.validation.version>
+		<sonar.organization>0eugene1</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -84,6 +86,7 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<!-- Плагин для компиляции с поддержкой Java 21 и опцией preview -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -96,6 +99,23 @@
 					</compilerArgs>
 				</configuration>
 			</plugin>
+
+			<!-- Плагин Jacoco для покрытия тестами -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal> <!-- Добавляет агент Jacoco для сбора данных о покрытии -->
+							<goal>report</goal> <!-- Генерирует отчет о покрытии -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
+

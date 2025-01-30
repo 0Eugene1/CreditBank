@@ -41,6 +41,8 @@
 		<json.path.version>2.5.0</json.path.version>
 		<spring.boot.validation.version>3.3.3</spring.boot.validation.version>
 		<jackson.jsr310.version>2.18.1</jackson.jsr310.version>
+		<sonar.organization>0eugene1</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
@@ -153,7 +155,24 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- Плагин Jacoco для покрытия тестами -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal> <!-- Добавляет агент Jacoco для сбора данных о покрытии -->
+							<goal>report</goal> <!-- Генерирует отчет о покрытии -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
+
 
 </project>
