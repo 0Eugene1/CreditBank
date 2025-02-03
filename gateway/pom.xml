@@ -36,7 +36,7 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
 		<spring.boot.maven.plugin.version>3.3.5</spring.boot.maven.plugin.version>
-		<jacoco.maven.plugin.version>0.8.7</jacoco.maven.plugin.version>
+		<jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
 	</properties>
 
     <dependencies>
