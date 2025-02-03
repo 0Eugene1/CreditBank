@@ -1,5 +1,4 @@
-FROM openjdk:21-jdk-slim
-WORKDIR /statement
-COPY ./target/statement.jar /app/
-EXPOSE 8083
-CMD ["java", "-jar", "statement.jar"]
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY target/statement-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

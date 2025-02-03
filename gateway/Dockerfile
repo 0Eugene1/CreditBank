@@ -1,5 +1,4 @@
-FROM openjdk:21-jdk-slim
-WORKDIR /gateway
-COPY ./target/gateway.jar /app/
-EXPOSE 8084
-CMD ["java", "-jar", "gateway.jar"]
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY target/gateway-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

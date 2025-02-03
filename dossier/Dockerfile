@@ -1,5 +1,4 @@
-FROM openjdk:21-jdk-slim
-WORKDIR /dossier
-COPY ./target/dossier.jar /app/
-EXPOSE 8085
-CMD ["java", "-jar", "dossier.jar"]
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY target/dossier-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

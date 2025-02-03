@@ -1,10 +1,6 @@
 package com.example.gateway.swagger;
 
-import com.example.deal.dto.SesCodeDTO;
-import com.example.deal.dto.StatementDto;
-import com.example.gateway.dto.FinishRegistrationRequestDto;
-import com.example.gateway.dto.LoanOfferDto;
-import com.example.gateway.dto.LoanStatementRequestDto;
+import com.example.gateway.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -47,7 +43,7 @@ public interface DealGatewayApi {
     @Operation(summary = "Подтвердить код",
             description = "Подтверждение подписания документов кодом через Gateway.")
     @PostMapping("/gateway/deal/document/{statementId}/code")
-    ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,  @RequestBody @Valid SesCodeDTO sesCodeDTO);
+    ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,  @RequestBody @Valid SesCodeDto sesCodeDTO);
 
     @Operation(summary = "Получить заявку по ID", description = "Получить заявку по ID для администрирования.")
     @GetMapping("/gateway/deal/admin/statement/{statementId}")

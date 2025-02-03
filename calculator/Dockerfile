@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-slim
-WORKDIR /calculator
-COPY ./target/calculator.jar /app/
-EXPOSE 8079
-CMD ["java", "-jar", "calculator.jar"]
+WORKDIR /app
+COPY target/*.jar calculator.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "calculator.jar"]

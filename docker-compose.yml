@@ -1,4 +1,31 @@
 services:
+  # Zookeeper для Kafka
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+
+  # Kafka
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "9092:9092" # Открытый порт для внешнего доступа
+    depends_on:
+      - zookeeper
+    networks:
+      - app-network
+
+    #Database
   database:
     image: postgres:latest
     container_name: database
@@ -11,9 +38,11 @@ services:
     networks:
       - app-network
 
+  # Calculator
   calculator:
     build:
-      context: "/Users/eugene/IdeaProjects/CreditBank/calculator"
+      context: ./calculator
+      dockerfile: Dockerfile
     ports:
       - "7071:8080"
     environment:
@@ -21,9 +50,11 @@ services:
     networks:
       - app-network
 
+  # Deal
   deal:
     build:
-      context: "/Users/eugene/IdeaProjects/CreditBank/deal"
+      context: ./deal
+      dockerfile: Dockerfile
     ports:
       - "7072:8080"
     environment:
@@ -35,21 +66,27 @@ services:
     networks:
       - app-network
 
+  # Dossier
   dossier:
     build:
-      context: "/Users/eugene/IdeaProjects/CreditBank/dossier"
+      context: ./dossier
+      dockerfile: Dockerfile
     ports:
       - "7073:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      - BOOTSTRAP-SERVERS=kafka:9093
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     depends_on:
       - deal
     networks:
       - app-network
 
+  # Gateway
   gateway:
     build:
-      context: "/Users/eugene/IdeaProjects/CreditBank/gateway"
+      context: ./gateway
+      dockerfile: Dockerfile
     ports:
       - "7074:8080"
     environment:
@@ -59,9 +96,11 @@ services:
     networks:
       - app-network
 
+  # Statement
   statement:
     build:
-      context: "/Users/eugene/IdeaProjects/CreditBank/statement"
+      context: ./statement
+      dockerfile: Dockerfile
     ports:
       - "7075:8080"
     environment:

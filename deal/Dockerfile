@@ -1,5 +1,4 @@
-FROM openjdk:21-jdk-slim
-WORKDIR /deal
-COPY ./target/deal.jar /app/
-EXPOSE 8082
-CMD ["java", "-jar", "deal.jar"]
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY target/deal-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "--enable-preview", "-jar", "app.jar"]

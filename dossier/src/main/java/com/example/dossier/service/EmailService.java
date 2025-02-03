@@ -1,7 +1,7 @@
 package com.example.dossier.service;
 
-import com.example.deal.dto.EmailMessage;
-import com.example.deal.enums.ThemeEnum;
+import com.example.dossier.dto.EmailMessage;
+import com.example.dossier.enums.ThemeEnum;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

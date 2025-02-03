@@ -19,7 +19,11 @@
         <dotenv.version>3.0.0</dotenv.version>
         <sonar.organization>0eugene1</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <spring.boot.maven.plugin.version>3.3.5</spring.boot.maven.plugin.version>
+        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <jacoco.maven.plugin.version>0.8.7</jacoco.maven.plugin.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -88,18 +92,33 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
             <!-- Плагин для Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.maven.plugin.version}</version>
+                <configuration>
+                    <mainClass>com.example.dossier.DossierApplication</mainClass>
+                </configuration>
             </plugin>
-
+            <!-- Плагин для JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.springframework.boot.loader.launch.JarLauncher</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
             <!-- Плагин Jacoco для покрытия тестами -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
+                <version>${jacoco.maven.plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -109,7 +128,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>
