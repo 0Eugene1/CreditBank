@@ -14,8 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class StatementDto {
     private UUID statementId;
-    private String clientName; // Пример поля из Client
-    private String creditType; // Пример поля из Credit
+    private String clientName;
+    private String creditType;
     private String status;
     private LocalDateTime creationDate;
 }
