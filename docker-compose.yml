@@ -28,6 +28,7 @@ services:
     #Database
   database:
     image: postgres:latest
+    hostname: database
     container_name: database
     environment:
       POSTGRES_DB: deal
@@ -37,6 +38,8 @@ services:
       - "5433:5432"
     networks:
       - app-network
+    volumes:
+      - postgresql:/var/lib/postgresql/data
 
   # Calculator
   calculator:
@@ -44,7 +47,7 @@ services:
       context: ./calculator
       dockerfile: Dockerfile
     ports:
-      - "7071:8080"
+      - "7071:8079"
     environment:
       SPRING_PROFILES_ACTIVE: prod
     networks:
@@ -56,12 +59,13 @@ services:
       context: ./deal
       dockerfile: Dockerfile
     ports:
-      - "7072:8080"
+      - "7072:8082"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/deal
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 5117
     depends_on:
+      - database
       - calculator
     networks:
       - app-network
@@ -72,7 +76,7 @@ services:
       context: ./dossier
       dockerfile: Dockerfile
     ports:
-      - "7073:8080"
+      - "7073:8085"
     environment:
       - BOOTSTRAP-SERVERS=kafka:9093
       - MAIL_USERNAME=${MAIL_USERNAME}
@@ -88,7 +92,7 @@ services:
       context: ./gateway
       dockerfile: Dockerfile
     ports:
-      - "7074:8080"
+      - "7074:8084"
     environment:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
@@ -102,7 +106,7 @@ services:
       context: ./statement
       dockerfile: Dockerfile
     ports:
-      - "7075:8080"
+      - "7075:8083"
     environment:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
@@ -113,3 +117,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgresql: { }

@@ -19,6 +19,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Table(name = "client")
 public class Client {
 
     @Id

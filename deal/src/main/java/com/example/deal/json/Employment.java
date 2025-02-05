@@ -16,7 +16,7 @@ public class Employment {
 
     @Id
     @GeneratedValue
-    private UUID employmentUud;
+    private UUID employmentUuid;
 
     @Enumerated(EnumType.STRING)
     private EmploymentStatus status;                 // Статус занятости

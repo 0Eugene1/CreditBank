@@ -5,7 +5,68 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
+    <changeSet id="create-passport-table" author="Eugene">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="passport"/>
+            </not>
+        </preConditions>
+        <createTable tableName="passport">
+            <column name="passport_id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="series" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issue_branch" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issue_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="Eugene" id="create-employment-table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="employment"/>
+            </not>
+        </preConditions>
+        <createTable tableName="employment">
+            <column name="employment_id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="employer_inn" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="salary" type="decimal(15,2)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="position" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="work_experience_total" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="work_experience_current" type="int">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
     <changeSet id="create-client-table" author="Eugene">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="client"/>
+            </not>
+        </preConditions>
         <createTable tableName="client">
             <column name="client_id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
