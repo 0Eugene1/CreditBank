@@ -1,10 +1,6 @@
 package com.example.gateway.feignclient;
 
-import com.example.deal.dto.SesCodeDTO;
-import com.example.deal.dto.StatementDto;
-import com.example.gateway.dto.FinishRegistrationRequestDto;
-import com.example.gateway.dto.LoanOfferDto;
-import com.example.gateway.dto.LoanStatementRequestDto;
+import com.example.gateway.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +31,7 @@ public interface DealFeignClient {
     void signDocuments(@PathVariable("statementId") UUID statementId);
 
     @PostMapping("${deal.service-confirm-code}")
-    void confirmCode(@PathVariable("statementId") UUID statementId,  @RequestBody @Valid SesCodeDTO sesCodeDTO);
+    void confirmCode(@PathVariable("statementId") UUID statementId,  @RequestBody @Valid SesCodeDto sesCodeDTO);
 
     @GetMapping("${deal.admin-service-get-statement-by-id}")
     StatementDto getStatementById(@PathVariable UUID statementId);

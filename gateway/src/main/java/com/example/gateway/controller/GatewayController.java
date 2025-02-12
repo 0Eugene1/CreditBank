@@ -1,10 +1,7 @@
 package com.example.gateway.controller;
 
-import com.example.deal.dto.SesCodeDTO;
-import com.example.deal.dto.StatementDto;
-import com.example.gateway.dto.FinishRegistrationRequestDto;
-import com.example.gateway.dto.LoanOfferDto;
-import com.example.gateway.dto.LoanStatementRequestDto;
+
+import com.example.gateway.dto.*;
 import com.example.gateway.service.DealGatewayService;
 import com.example.gateway.swagger.DealGatewayApi;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +64,7 @@ public class GatewayController implements DealGatewayApi {
     @Override
     @PostMapping("/document/{statementId}/code")
     public ResponseEntity<Void> confirmCode(@PathVariable UUID statementId,
-                                            @RequestBody SesCodeDTO sesCodeDTO) {
+                                            @RequestBody SesCodeDto sesCodeDTO) {
         log.info("Received confirm code request via Gateway for statementId: {}", statementId);
         dealGatewayService.confirmCode(statementId, sesCodeDTO);
         return ResponseEntity.ok().build();

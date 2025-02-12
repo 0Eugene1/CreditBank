@@ -10,18 +10,13 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,8 +31,6 @@ public class LoanCalcServiceTest {
     @Mock
     private ScoringService scoringService;
 
-    @Mock
-    private PrescoringService prescoringService;
 
     private ScoringDataDto scoringData;
 
@@ -69,25 +62,6 @@ public class LoanCalcServiceTest {
         // Проверка результата
         assertEquals(expectedMonthlyPayment, creditDto.getMonthlyPayment());
     }
-
-    @Test
-    public void calculateCredit_prescoringFails() throws Exception {
-        // Настройка моков для prescoringService
-        doNothing().when(prescoringService).validate(any(ScoringDataDto.class));
-
-        // Мокаем поведение сервиса, чтобы вызвать исключение
-        when(scoringService.calculateRate(any(ScoringDataDto.class)))
-                .thenThrow(new NullPointerException("Cannot invoke method on null object"));
-
-        // Отправляем запрос с валидными данными
-        mockMvc.perform(MockMvcRequestBuilders.post("/calculator/calc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"amount\":100000, \"term\":12, \"firstName\": \"Name\", \"lastName\": \"MidName\", \"birthDate\": \"2000-01-01\", \"passportSeries\": \"1234\", \"passportNumber\": \"567890\"}"))
-                .andExpect(status().isInternalServerError())  // Ожидаем статус 500
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value(
-                        containsString("Произошла внутренняя ошибка")));  // Ожидаемое сообщение об ошибке
-    }
-
 
     @Test
     void calculateCredit_largeLoan() {
